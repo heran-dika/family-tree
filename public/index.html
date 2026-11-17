@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="color-scheme" content="only light">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Family Tree: Editor Pohon (prototipe)</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
 <style>
@@ -11,7 +11,7 @@
 @media not all{:root:not([data-theme="light"]){--bg:#101a2e;--card:#17233d;--ink:#fdf0f0;--mut:#b4bdd4;--bd:#2b3a5c;--acc:#f1b4bb;--onacc:#1f4172;--accbg:#2b2748;--line:#8a96b8;--pend:#F2C672;--pendbg:#3A2D10}}
 :root[data-theme="none"]{--bg:#101a2e;--card:#17233d;--ink:#fdf0f0;--mut:#b4bdd4;--bd:#2b3a5c;--acc:#f1b4bb;--onacc:#1f4172;--accbg:#2b2748;--line:#8a96b8;--pend:#F2C672;--pendbg:#3A2D10}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-html,body{height:100%}
+html,body{height:100%;touch-action:manipulation;overscroll-behavior:none}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 Inter,system-ui,sans-serif}
 button{font-family:inherit;cursor:pointer;touch-action:manipulation}
@@ -27,8 +27,8 @@ h1{font-size:20px;margin:0}
 .ch{min-height:44px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font-weight:600;font-size:14px;padding:0 14px}
 .ch.on{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
 .vw{position:relative;flex:1;min-height:0;margin:8px 12px 12px;border:1.5px solid var(--bd);border-radius:16px;background:var(--card) radial-gradient(var(--bd) 1.2px,transparent 1.2px) 0 0/20px 20px;overflow:hidden}
-#vp{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch}
-#sizer{margin:0 auto}
+#vp{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+#sizer{position:absolute;left:0;top:0}
 #stage{position:relative}
 #stage svg{position:absolute;left:0;top:0;fill:none;stroke:var(--line);stroke-width:2;pointer-events:none}
 .card{position:absolute;width:96px;height:58px;padding:4px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:13px;font-weight:600;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
@@ -81,7 +81,7 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 <header>
 <div class="rw"><h1>Keluarga Ahmad</h1><button class="pill" id="pc" data-act="pend">0 menunggu</button></div>
 <div class="seg" role="group" aria-label="Simulasi peran"><button class="ch on" data-act="role" data-id="owner" aria-pressed="true">Owner</button><button class="ch" data-act="role" data-id="contributor" aria-pressed="false">Contributor</button></div>
-<p class="m" style="margin:0">Ketuk orang untuk mengedit, geser untuk menjelajah. Peran dan data hanya simulasi.</p>
+<p class="m" style="margin:0">Ketuk orang untuk mengedit. Geser dan cubit untuk menjelajah. Data hanya simulasi.</p>
 </header>
 <div class="vw">
 <div id="vp"><div id="sizer"><div id="stage"></div></div></div>
@@ -105,7 +105,7 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const L0=(c,ps,t='biologis')=>ps.map(p=>({c,p,t}));
-const S={role:'owner',focus:'a',sel:null,ui:null,form:null,z:1,n:0,props:[],log:[],members:['Ahmad (Owner)','Budi (Admin)','Rina (Contributor)'],tab:'beranda',tr:null,
+const S={role:'owner',focus:'a',sel:null,ui:null,form:null,z:1,x:0,y:0,n:0,props:[],log:[],members:['Ahmad (Owner)','Budi (Admin)','Rina (Contributor)'],tab:'beranda',tr:null,
 people:{a:{n:'Ahmad',y:'1962',c:1},s:{n:'Siti',y:'1965',c:1},k:{n:'Karim',y:'1935',c:1},am:{n:'Aminah',y:'1940',c:1},h:{n:'Hasan',y:'1905'},ik:{n:'Ibu Karim',u:1},y:{n:'Yusuf',y:'1912'},f:{n:'Fatimah',y:'1916'},r:{n:'Rina',y:'1990',c:1},d:{n:'Dimas',y:'1998'},sa:{n:'Sari',y:'1994'},ai:{n:'Aisyah',y:'2018'},ra:{n:'Raka',y:'2020'}},
 par:[...L0('a',['k','am']),...L0('k',['h','ik']),...L0('am',['y','f']),...L0('r',['a','s']),...L0('d',['a','s'],'adopsi'),...L0('sa',['a','s']),...L0('ai',['r']),...L0('ra',['r'])],
 sp:[{a:'a',b:'s'},{a:'k',b:'am'},{a:'h',b:'ik'},{a:'y',b:'f'}]};
@@ -134,13 +134,25 @@ S.sp.forEach(s=>{const A=pos[s.a],B=pos[s.b];if(!A||!B||A.y!==B.y)return;const[l
 const ids=Object.keys(pos).filter(i=>pos[i].k==='f'||pos[i].k==='c1');
 if(ids.length>1){const xs=ids.map(i=>pos[i].x),ys=ids.map(i=>pos[i].y),x=Math.min(...xs)-14,y=Math.min(...ys)-14,w=Math.max(...xs)+W+14-x,h=Math.max(...ys)+H+14-y;bd=`<div class="band" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div><span class="bl" style="left:${x+14}px;top:${y-9}px">Keluarga inti</span>`;}
 Object.entries(pos).forEach(([id,q])=>{const p=P(id);const cl=['card',id===S.focus&&'f',(q.k==='f'||q.k==='c1')&&id!==S.focus&&'in',p.pend&&'p',p.u&&'u',id===S.sel&&'sel'].filter(Boolean).join(' ');cd+=`<button class="${cl}" data-act="sel" data-id="${id}" style="left:${q.x}px;top:${q.y}px"><span>${esc(p.n)}</span><small>${p.pend?'Menunggu':sub(p)}</small></button>`;});
-const z=S.z;$('#sizer').style.cssText=`width:${L.cw*z}px;height:${L.ch*z}px`;
-const st=$('#stage');st.style.cssText=`width:${L.cw}px;height:${L.ch}px;transform:scale(${z});transform-origin:0 0`;
+
+const st=$('#stage');st.style.cssText=`width:${L.cw}px;height:${L.ch}px;transform:translate(${S.x}px,${S.y}px) scale(${S.z});transform-origin:0 0`;
 st.innerHTML=bd+`<svg width="${L.cw}" height="${L.ch}" aria-hidden="true">${sv}</svg>`+cd;return L;
 }
-function ctr(L){const q=L.pos[S.focus];if(!q)return;vp.scrollLeft=(q.x+L.W/2)*S.z-vp.clientWidth/2;vp.scrollTop=(q.y+L.H/2)*S.z-vp.clientHeight/2;}
+function ctr(L){const q=L.pos[S.focus];if(!q)return;S.x=vp.clientWidth/2-(q.x+L.W/2)*S.z;S.y=vp.clientHeight/2-(q.y+L.H/2)*S.z;ap();}
 const fit=L=>Math.max(.5,Math.min(1,vp.clientWidth/L.cw));
-function zoom(d){const o=S.z,cx=(vp.scrollLeft+vp.clientWidth/2)/o,cy=(vp.scrollTop+vp.clientHeight/2)/o;S.z=Math.min(1.6,Math.max(.5,o+d));tree();vp.scrollLeft=cx*S.z-vp.clientWidth/2;vp.scrollTop=cy*S.z-vp.clientHeight/2;}
+function ap(){$('#stage').style.transform=`translate(${S.x}px,${S.y}px) scale(${S.z})`;}
+function zm(n,cx,cy){n=Math.min(1.6,Math.max(.3,n));S.x=cx-(cx-S.x)*n/S.z;S.y=cy-(cy-S.y)*n/S.z;S.z=n;ap();}
+function zoom(d){zm(S.z+d,vp.clientWidth/2,vp.clientHeight/2);}
+// geser, cubit, dan roda mouse hanya berlaku di kanvas pohon
+const PT=new Map();let mv=0,pd=0;
+vp.addEventListener('pointerdown',e=>{PT.set(e.pointerId,[e.clientX,e.clientY]);mv=0;pd=0;});
+vp.addEventListener('pointermove',e=>{const o=PT.get(e.pointerId);if(!o)return;PT.set(e.pointerId,[e.clientX,e.clientY]);mv+=Math.abs(e.clientX-o[0])+Math.abs(e.clientY-o[1]);
+if(PT.size===1){if(mv>6){S.x+=e.clientX-o[0];S.y+=e.clientY-o[1];ap();}}
+else if(PT.size===2){const[a,b]=[...PT.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),r=vp.getBoundingClientRect();if(pd)zm(S.z*d/pd,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);pd=d;}});
+['pointerup','pointercancel','pointerleave'].forEach(t=>vp.addEventListener(t,e=>{PT.delete(e.pointerId);pd=0;}));
+vp.addEventListener('wheel',e=>{e.preventDefault();const r=vp.getBoundingClientRect();zm(S.z*(e.deltaY<0?1.1:.9),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+// cegah zoom halaman di iOS Safari (yang mengabaikan user-scalable=no)
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
 let tm;function toast(t){const e=$('#tt');e.textContent=t;e.className='o';clearTimeout(tm);tm=setTimeout(()=>e.className='',2200);}
 function hdr(){views();$('#pc').textContent=S.props.length+' menunggu';document.querySelectorAll('[data-act=role]').forEach(b=>{const on=b.dataset.id===S.role;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});}
 const nm=a=>a.length?a.map(i=>esc(P(i).n)).join(', '):'—';
@@ -197,7 +209,7 @@ $('#v-setuju').innerHTML=hd('Persetujuan')+'<div class="m">Perubahan yang Anda a
 $('#v-menu').innerHTML=hd('Menu')+`<div class="h">Anggota dan akses</div><div class="c">${S.members.map(esc).join('<br>')}</div>
 <div class="h">Audit log</div><div class="c">${o?(S.log.length?S.log.slice(-8).reverse().map(esc).join('<br>'):'Belum ada aktivitas. Coba edit pohon.'):'Hanya Owner dan Admin yang bisa melihat audit log.'}</div>
 <div class="h">Backup dan ekspor</div><div class="c">Google Drive terhubung, backup harian terenkripsi<button class="b o2" data-act="soon">Ekspor JSON</button></div>
-<div class="h">Akun</div><div class="c">Mode: Modern · Bahasa: Indonesia · MFA: aktif</div>`;
+<div class="h">Akun</div><div class="c">Bahasa: Indonesia · MFA: aktif</div>`;
 }
 function tab(id){S.tab=id;done();sheet();document.querySelectorAll('.vs').forEach(v=>v.classList.toggle('on',v.id==='v-'+id));document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.id===id));if(id==='pohon'){rf();ctr(tree());}}
 function tracePath(a,b){
@@ -213,6 +225,7 @@ return h+'</div><div class="m">Langkah paling sedikit bukan berarti hubungan dar
 function shTrace(){const a=S.sel,o=Object.keys(S.people).filter(i=>i!==a&&!P(i).pend).map(i=>`<option value="${i}"${S.tr===i?' selected':''}>${esc(P(i).n)}</option>`).join('');
 return `<div class="rw"><div class="t">Telusuri hubungan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div><label for="tg">Dari <b>${esc(P(a).n)}</b> ke</label><select id="tg">${o}</select><button class="b" data-act="tgo">Telusuri</button>${S.tr?tracePath(a,S.tr):''}`;}
 $('#app').addEventListener('click',e=>{
+if(mv>6&&e.target.closest('#vp')){mv=0;return;}
 const el=e.target.closest('[data-act]');if(!el)return;
 const a=el.dataset.act,id=el.dataset.id,f=S.form;
 switch(a){
