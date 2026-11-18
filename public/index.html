@@ -31,9 +31,30 @@ h1{font-size:20px;margin:0}
 #sizer{position:absolute;left:0;top:0}
 #stage{position:relative}
 #stage svg{position:absolute;left:0;top:0;fill:none;stroke:var(--line);stroke-width:2;pointer-events:none}
-.card{position:absolute;width:96px;height:58px;padding:4px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:13px;font-weight:600;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.card{position:absolute;width:120px;height:64px;padding:4px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:13px;font-weight:600;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .card small{font-weight:400;font-size:11px;color:var(--mut)}
+.card span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.col,.tg{position:absolute;border:1.5px solid var(--acc);background:var(--card);color:var(--acc);font-weight:700;padding:0}
+.col::after,.tg::after{content:'';position:absolute;inset:-8px}
+.col{height:32px;min-width:88px;padding:0 12px;border-radius:999px;font-size:12px}
+.tg{width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;font-size:16px;line-height:1}
 .card.in{border:2px solid var(--acc)}
+.card.pth{background:var(--accbg);border:3px solid var(--acc)}
+.card.ank{background:var(--sub);border:3px solid var(--onsub);color:var(--onsub)}
+.card.ank small{color:var(--onsub)}
+.card.dim{opacity:.7}
+.tag{position:absolute;left:50%;top:-10px;transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:700;line-height:1;padding:3px 8px;border-radius:999px;background:var(--sub);color:var(--onsub);border:1px solid var(--onsub);white-space:nowrap}
+.tag.bt{top:auto;bottom:-10px;background:var(--card);color:var(--ink);border-color:var(--line)}
+.lc{position:absolute;transform:translateX(-50%);font-size:10px;font-weight:700;line-height:1;padding:3px 7px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--ink);white-space:nowrap;pointer-events:none}
+#stage svg .hl{stroke:var(--acc);stroke-width:5}
+#stage svg .pd{stroke:var(--pend);stroke-width:3}
+.pt{position:absolute;left:10px;top:10px;z-index:3;min-height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font-weight:700;font-size:13px}
+.pt[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
+.lg2{position:absolute;left:10px;top:62px;z-index:3;display:none;max-width:240px;padding:8px 10px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card);font-size:12px;line-height:1.7;pointer-events:none}
+.lg2.o{display:block}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--line);vertical-align:-2px;margin:0 4px 0 10px}
+.sw:first-of-type{margin-left:0}
+.sw.ank{background:var(--sub);border-color:var(--onsub)}.sw.pth{background:var(--accbg);border-color:var(--acc)}.sw.f{background:var(--acc);border-color:var(--acc)}
 .card.u{border-style:dashed}
 .card.f{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
 .card.f small{color:var(--onacc)}
@@ -85,6 +106,7 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 </header>
 <div class="vw">
 <div id="vp"><div id="sizer"><div id="stage"></div></div></div>
+<button class="pt" id="pb" data-act="path" aria-pressed="false">Jalur ke acuan</button><div id="lg2" class="lg2"></div>
 <div class="zc"><button class="z" data-act="zin" aria-label="Perbesar">+</button><button class="z" data-act="zout" aria-label="Perkecil">−</button><button class="z" data-act="fit" style="font-size:12px">Inti</button></div>
 </div>
 </section>
@@ -105,41 +127,155 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const L0=(c,ps,t='biologis')=>ps.map(p=>({c,p,t}));
-const S={role:'owner',focus:'a',sel:null,ui:null,form:null,z:1,x:0,y:0,n:0,props:[],log:[],members:['Ahmad (Owner)','Budi (Admin)','Rina (Contributor)'],tab:'beranda',tr:null,
-people:{a:{n:'Ahmad',y:'1962',c:1},s:{n:'Siti',y:'1965',c:1},k:{n:'Karim',y:'1935',c:1},am:{n:'Aminah',y:'1940',c:1},h:{n:'Hasan',y:'1905'},ik:{n:'Ibu Karim',u:1},y:{n:'Yusuf',y:'1912'},f:{n:'Fatimah',y:'1916'},r:{n:'Rina',y:'1990',c:1},d:{n:'Dimas',y:'1998'},sa:{n:'Sari',y:'1994'},ai:{n:'Aisyah',y:'2018'},ra:{n:'Raka',y:'2020'}},
-par:[...L0('a',['k','am']),...L0('k',['h','ik']),...L0('am',['y','f']),...L0('r',['a','s']),...L0('d',['a','s'],'adopsi'),...L0('sa',['a','s']),...L0('ai',['r']),...L0('ra',['r'])],
-sp:[{a:'a',b:'s'},{a:'k',b:'am'},{a:'h',b:'ik'},{a:'y',b:'f'}]};
+const S={role:'owner',focus:'a',sel:null,ui:null,form:null,z:1,x:0,y:0,col:new Set(),exp:new Set(),path:false,anchor:'a',n:0,props:[],log:[],members:['Ahmad Fauzi Rahman (Owner)','Budi Santoso (Admin)','Rina Kartika (Contributor)'],tab:'beranda',tr:null,
+people:{a:{n:'Ahmad Fauzi Rahman',y:'1962',c:1,g:'L'},s:{n:'Siti Rohmah Lestari',y:'1965',c:1,g:'P'},k:{n:'Abdul Karim Hasan',y:'1935',c:1,g:'L'},am:{n:'Siti Aminah Yusuf',y:'1940',c:1,g:'P'},h:{n:'Hasan Basri',y:'1905',g:'L'},ik:{n:'Ibu',u:1,g:'P'},y:{n:'Yusuf Ibrahim',y:'1912',g:'L'},f:{n:'Fatimah Zahra',y:'1916',g:'P'},bs:{n:'Basri Ahmad',y:'1878',g:'L'},ib:{n:'Ibrahim Basri',y:'1850',g:'L'},
+nu:{n:'Nurul Hidayati',y:'1957',g:'P'},sl:{n:'Slamet Riyadi',y:'1959',g:'L'},kh:{n:'Siti Khadijah',y:'1964',g:'P'},mu:{n:'Mulyadi Hartono',y:'1967',g:'L'},de:{n:'Dewi Sartika',y:'1969',g:'P'},ba:{n:'Bambang Wijaya',y:'1972',g:'L'},rh:{n:'Rizal Hakim',y:'1970',g:'L'},sw:{n:'Sri Wahyuni',y:'1961',g:'P'},rt:{n:'Ratna Dewi',y:'1968',g:'P'},rz:{n:'Rizky Ramadhan',y:'1992',g:'L'},dn:{n:'Dian Pertiwi',y:'1985',g:'P'},dp:{n:'Doni Saputro',y:'1988',g:'L'},d1:{n:'Dina Maharani',y:'1992',g:'P'},d2:{n:'Dika Pramudya',y:'1995',g:'L'},d3:{n:'Dita Anggraini',y:'1999',g:'P'},
+fa:{n:'Fajar Nugroho',y:'1987',g:'L'},r:{n:'Rina Kartika',y:'1990',c:1,g:'P'},pu:{n:'Putri Anggraini',y:'1992',g:'P'},sa:{n:'Sari Wulandari',y:'1994',g:'P'},he:{n:'Hendra Saputra',y:'1996',g:'L'},d:{n:'Dimas Pratama',y:'1998',g:'L'},jk:{n:'Joko Prasetyo',y:'1988',g:'L'},le:{n:'Lestari Ningsih',y:'1989',g:'P'},ek:{n:'Eko Wahyudi',y:'1992',g:'L'},ai:{n:'Aisyah Zahra',y:'2018',g:'P'},ra:{n:'Raka Mahendra',y:'2020',g:'L'},nf:{n:'Naufal Aditya',y:'2014',g:'L'},kr:{n:'Kirana Aulia',y:'2016',g:'P'},zi:{n:'Zidan Alfarizi',y:'2019',g:'L'},al:{n:'Alesha Putri',y:'2021',g:'P'}},
+par:[...L0('a',['k','am']),...['nu','sl','kh','mu','de','ba'].flatMap(c=>L0(c,['k','am'])),...L0('rh',['k','am'],'wali'),...L0('k',['h','ik']),...L0('am',['y','f']),...L0('h',['bs']),...L0('bs',['ib']),
+...['fa','r','pu','sa','he'].flatMap(c=>L0(c,['a','s'])),...L0('d',['a','s'],'adopsi'),...['ai','ra'].flatMap(c=>L0(c,['r','jk'])),...['nf','kr','zi'].flatMap(c=>L0(c,['fa','le'])),...L0('al',['sa','ek']),...['dn','dp'].flatMap(c=>L0(c,['sl','sw'])),...L0('rz',['rt']),...L0('rz',['sl'],'tiri'),...['d1','d2','d3'].flatMap(c=>L0(c,['de']))],
+sp:[{a:'a',b:'s',t:'menikah',y:'1986'},{a:'k',b:'am',t:'wafat',y:'1999'},{a:'h',b:'ik'},{a:'y',b:'f'},{a:'r',b:'jk'},{a:'fa',b:'le'},{a:'sa',b:'ek'},{a:'sl',b:'sw',t:'cerai',y:'2002'},{a:'sl',b:'rt',t:'menikah',y:'2004'}]};
 const P=id=>S.people[id];
 const uniq=a=>[...new Set(a)];
 const parOf=id=>uniq(S.par.filter(l=>l.c===id).map(l=>l.p));
 const chOf=id=>uniq(S.par.filter(l=>l.p===id).map(l=>l.c));
 const spOf=id=>S.sp.filter(s=>s.a===id||s.b===id).map(s=>s.a===id?s.b:s.a);
+// orang tua utama: yang kandung; kalau tidak ada yang kandung, semua (mis. anak angkat atau wali)
+const pp=c=>{const ls=S.par.filter(l=>l.c===c),b=ls.filter(l=>l.t==='biologis');return uniq((b.length?b:ls).map(l=>l.p));};
+const lnk=(a,b)=>S.sp.find(s=>(s.a===a&&s.b===b)||(s.a===b&&s.b===a));
+// data contoh: keluarga besar, tiap pasangan di 4 generasi punya minimal 5 anak
+const FL=['Agus','Budi','Dedi','Hadi','Lukman','Oki','Putra','Teguh','Umar','Wahyu','Zaki','Bagas'],FP=['Citra','Eka','Farah','Gita','Indah','Maya','Nanda','Rani','Sinta','Vina','Yanti','Intan'],LN=['Santoso','Wijaya','Pratama','Hidayat','Nugroho','Saputra','Lestari','Kusuma','Rahmawati','Setiawan','Permana','Utami'];
+let gn=0;const cnt={L:0,P:0};
+const gperson=(y,g)=>{g=g||(cnt.L<=cnt.P?'L':'P');const c=cnt[g]++,F=g==='L'?FL:FP,id='g'+(++gn);S.people[id]={n:F[c%F.length]+' '+LN[(c+Math.floor(c/F.length))%LN.length],y:String(Math.min(y,2026)),g};return id;};
+const mk=(ps,n,y0)=>{for(let i=0;i<n;i++){const c=gperson(y0+i*2);ps.forEach(q=>S.par.push({c,p:q,t:'biologis'}));}};
+function fill(id,n,y0,withSp=true){
+if(withSp&&!spOf(id).length)S.sp.push({a:id,b:gperson((+P(id).y||1960)+2,P(id).g==='L'?'P':'L'),t:'menikah'});
+y0=y0||(+P(id).y||1960)+22;const ex=chOf(id).length;
+if(ex<n)mk([id,...spOf(id).slice(0,1)],n-ex,y0+ex*2);
+}
+['ib','bs','h','y','nu','kh','mu','ba','fa','r','pu','sa','he','d'].forEach(i=>fill(i,5));
+fill('de',5,0,false);
+mk(['sl','rt'],5,2005);
+{const s0=lnk('nu',spOf('nu')[0]);s0.t='pisah';s0.y='1995';}
+const TL={biologis:'kandung',adopsi:'adopsi',tiri:'tiri',wali:'wali'},SL={menikah:'menikah',cerai:'cerai',pisah:'pisah',wafat:'pasangan wafat'},SL2={cerai:'Cerai',pisah:'Pisah',wafat:'Wafat'},TG={adopsi:'Adopsi',tiri:'Tiri',wali:'Wali'};
+const plist=id=>{const r=S.par.filter(l=>l.c===id).map(l=>esc(P(l.p).n)+(l.t!=='biologis'?' ('+(TL[l.t]||l.t)+')':''));return r.length?r.join(', '):'—';};
+const slist=id=>{const r=S.sp.filter(s=>s.a===id||s.b===id).map(s=>esc(P(s.a===id?s.b:s.a).n)+(s.t&&s.t!=='menikah'?' ('+SL[s.t]+(s.y?' '+s.y:'')+')':''));return r.length?r.join(', '):'—';};
 const willPend=k=>S.role==='contributor'||k==='parent'||k==='child';
 const LB={parent:'orang tua',spouse:'pasangan',child:'anak'};
 const TY=[['biologis','Biologis'],['adopsi','Adopsi'],['tiri','Orang tua tiri'],['wali','Wali/pengasuh']];
 const vp=$('#vp');
+// jalur dari fokus ke acuan lewat garis orang tua; puncak jalur = leluhur bersama terdekat
+function pathInfo(x,a){
+if(x===a)return{apex:x,on:new Set([x])};
+const up=src=>{const prev={[src]:null},q=[src];while(q.length){const c=q.shift();pp(c).forEach(p=>{if(!(p in prev)){prev[p]=c;q.push(p);}});}return prev;};
+const chain=(prev,src,c)=>{const r=[c];while(r[r.length-1]!==src)r.push(prev[r[r.length-1]]);return r;};
+const px=up(x),pa=up(a);let best=null;
+Object.keys(px).forEach(c=>{if(c in pa){const A=chain(px,x,c),B=chain(pa,a,c),d=A.length+B.length;if(!best||d<best.d)best={d,c,A,B};}});
+return best?{apex:best.c,on:new Set([...best.A,...best.B])}:null;
+}
 function layout(){
-const f=S.focus,r0=[f,...spOf(f)],m1=uniq(parOf(f)),m2=uniq(m1.flatMap(parOf)),c1=uniq(chOf(f)),c2=uniq(c1.flatMap(chOf));
-const rows=[[m2,'a2'],[m1,'a1'],[r0,'f'],[c1,'c1'],[c2,'c2']].filter(r=>r[0].length);
-const W=96,H=58,G=20,V=44,pad=24,tw=r=>r.length*W+(r.length-1)*G;
-const cw=Math.max(...rows.map(r=>tw(r[0])))+pad*2,pos={};
-rows.forEach(([r,k],i)=>{let x=(cw-tw(r))/2;r.forEach(id=>{pos[id]={x,y:pad+i*(H+V),k};x+=W+G;});});
-return{pos,cw,ch:pad*2+rows.length*H+(rows.length-1)*V,W,H,V};
+// pasangan: laki-laki di kiri, perempuan di kanan. Anak dikelompokkan di bawah orang tuanya. Cucu (baris terakhir) ditumpuk vertikal.
+const W=120,H=64,G=24,GW=72,GP=40,V=60,SG=14,SP=16,UD=12,pad=24,f=S.focus,seen=new Set(),pos={},lvl={},gr=i=>P(i).g,yr=i=>+P(i).y||9999;
+const PI=S.path?pathInfo(f,S.anchor):null,pm=!!PI,isOn=i=>pm&&PI.on.has(i);
+const gap=(a,b)=>{const s=lnk(a,b);return s&&s.t&&s.t!=='menikah'?GW:G;};
+const order=(m,sps)=>{const L=gr(m)==='P'?sps.filter(s=>gr(s)!=='P'):[],R=gr(m)==='P'?sps.filter(s=>gr(s)==='P'):sps,by=a=>a.slice().sort((p,q)=>(+lnk(m,p).y||0)-(+lnk(m,q).y||0));return[...by(L),m,...by(R)];};
+let hs=0;
+const dsc=(id,l)=>{
+seen.add(id);lvl[id]=l;
+const sps=spOf(id).filter(s=>!seen.has(s));sps.forEach(s=>seen.add(s));
+const u=order(id,sps),off=[];let x=0;u.forEach((q,i)=>{off.push(x);x+=W+(i<u.length-1?gap(q,u[i+1]):0);});
+const uw=x,mi=u.indexOf(id),mem=new Set(u);
+const own=c=>{const ps=pp(c);return ps.some(p=>mem.has(p))&&ps.every(p=>mem.has(p)||!spOf(p).some(s=>mem.has(s)));};
+const all=(pm||l<2)?uniq(u.flatMap(chOf)).filter(c=>own(c)&&!seen.has(c)):[];
+const key=c=>{const ps=S.par.filter(k=>k.c===c).map(k=>k.p);return u.find(q=>q!==id&&ps.includes(q))||'';};
+const gi=c=>{const k=key(c);return k?u.indexOf(k):-1;};
+let ks=all,hid=0;const tot=all.length,pk=pm?all.filter(isOn).length:0;
+if(pm){if(isOn(id)){if(!S.exp.has(id))ks=all.filter(isOn);}else if(!S.exp.has(id)){hid=tot;ks=[];}}
+else if(S.col.has(id)){hid=tot;ks=[];}
+if(hid)hs=1;
+ks=ks.slice().sort((a,b)=>gi(a)-gi(b)||yr(a)-yr(b));
+const kids=[];ks.forEach(c=>{if(!seen.has(c))kids.push(dsc(c,l+1));});
+const gs=[];kids.forEach(k=>{const kk=key(k.id);let g=gs.find(q=>q.k===kk);if(!g){g={k:kk,kids:[]};const j=kk?u.indexOf(kk):mi;
+if(!kk){g.ax=off[mi]+W/2;g.ay=H;}else if(Math.abs(j-mi)===1){g.ax=(Math.min(off[j],off[mi])+W+Math.max(off[j],off[mi]))/2;g.ay=H/2;}else{g.ax=(off[mi]+off[j])/2+W/2;g.ay=H+UD;g.u=1;}gs.push(g);}g.kids.push(k);});
+const stack=!pm&&l===1&&kids.length>0&&kids.every(k=>!k.kids.length&&!k.hid);
+let w,cols=null,kw=0;
+if(stack){cols=[];let end=0;gs.forEach(g=>{const cw=SP+Math.max(...g.kids.map(k=>k.uw)),sx=cols.length?Math.max(g.ax,end+GP):g.ax;cols.push({g,sx,cw});end=sx+cw;});w=Math.max(uw,end);}
+else{kw=kids.length?kids.reduce((s,k)=>s+k.w,0)+(kids.length-1)*GP:0;w=Math.max(uw,kw);}
+return{id,u,off,mi,l,kids,gs,hid,tot,pk,uw,kw,w,stack,cols};};
+const root=dsc(pm?PI.apex:f,0);
+const put=(n,x0)=>{
+const ul=n.stack?x0:x0+(n.w-n.uw)/2;
+n.u.forEach((id,i)=>{pos[id]={x:ul+n.off[i],row:n.l,dy:n.dy||0,k:n.l?'c'+n.l:'f'};});
+if(n.stack){n.cols.forEach(c=>c.g.kids.forEach((k,i)=>{k.dy=i*(H+SG);put(k,x0+c.sx+SP);}));}
+else{let kx=x0+(n.w-n.kw)/2;n.kids.forEach(k=>{put(k,kx);kx+=k.w+GP;});}};
+put(root,0);
+// leluhur: ayah di kiri, ibu di kanan
+const rk=i=>gr(i)==='L'?0:gr(i)==='P'?2:1;
+const anc=(id,d)=>{const ps=(d<2&&!pm)?uniq(parOf(id)).filter(p=>!seen.has(p)).sort((a,b)=>rk(a)-rk(b)):[];ps.forEach(p=>seen.add(p));const ch=ps.map(p=>anc(p,d+1));let bw=0;ch.forEach((c,i)=>{bw+=c.w+(i?gap(ps[i-1],ps[i]):0);});return{id,d,ps,ch,bw,w:Math.max(W,bw)};};
+const aroot=anc(f,0);
+const aput=(n,x0)=>{let x=x0+(n.w-n.bw)/2;n.ch.forEach((c,i)=>{if(i)x+=gap(n.ps[i-1],n.ps[i]);aput(c,x);x+=c.w;});if(n.d)pos[n.id]={x:x0+n.w/2-W/2,row:-n.d,dy:0,k:'a'+n.d};};
+if(!pm)aput(aroot,pos[f].x+W/2-aroot.w/2);
+const ids=Object.keys(pos),rs=ids.map(i=>pos[i].row),rmin=Math.min(...rs),sh=pad-Math.min(...ids.map(i=>pos[i].x));
+ids.forEach(i=>{const q=pos[i];q.x+=sh;q.y=pad+(q.row-rmin)*(H+V)+q.dy;});
+return{pos,tr:{root,aroot},cw:Math.max(...ids.map(i=>pos[i].x))+W+pad+(pm?112:0),ch:Math.max(...ids.map(i=>pos[i].y))+H+pad+(hs?40:0),W,H,V,SP,UD,PI,pm,lvl};
 }
 const sub=p=>p.u?'belum diketahui':(p.ap?'±':'')+(p.y||'tahun ?');
 function tree(){
-const L=layout(),{pos,W,H,V}=L;let sv='',cd='',bd='';
-S.par.forEach(l=>{const a=pos[l.p],b=pos[l.c];if(!a||!b||b.y<=a.y)return;const x1=a.x+W/2,y1=a.y+H,x2=b.x+W/2,ym=y1+V/2;sv+=`<path d="M${x1} ${y1}V${ym}H${x2}V${b.y}"${l.t!=='biologis'||l.pend?' stroke-dasharray="5 4"':''}/>`;});
-S.sp.forEach(s=>{const A=pos[s.a],B=pos[s.b];if(!A||!B||A.y!==B.y)return;const[l,r]=A.x<B.x?[A,B]:[B,A];sv+=`<path d="M${l.x+W} ${l.y+H/2}H${r.x}"${s.pend?' stroke-dasharray="5 4"':''}/>`;});
+const L=layout(),{pos,W,H,V,SP,UD,PI,pm,lvl}=L;let sv='',hl='',cd='',bd='';
+const cx=i=>pos[i].x+W/2,isOn=i=>pm&&PI.on.has(i),lk=(c,p)=>S.par.find(l=>l.c===c&&l.p===p);
+const PAT={adopsi:'10 5',tiri:'2 5',wali:'10 4 2 4'};
+const sa=l=>(l&&PAT[l.t]?` stroke-dasharray="${PAT[l.t]}"${l.t==='tiri'?' stroke-linecap="round"':''}`:'')+(l&&l.pend?' class="pd"':'');
+const lt=(k,mem)=>S.par.find(l=>l.c===k&&mem.includes(l.p)&&l.t!=='biologis')||S.par.find(l=>l.c===k&&mem.includes(l.p));
+const walk=n=>{
+const q0=pos[n.u[0]],ul=q0.x,y0=q0.y,yb=y0+H+V/2;
+if(n.hid)cd+=`<button class="col" data-act="col" data-id="${n.id}" style="left:${ul+n.uw/2-44}px;top:${y0+H+8}px">${n.hid} anak ▸</button>`;
+if(pm&&isOn(n.id)&&n.tot>n.pk){const o=S.exp.has(n.id);cd+=`<button class="col" data-act="col" data-id="${n.id}" style="left:${ul+n.uw+10}px;top:${y0+H/2-16}px">${o?'Sembunyikan ◂':(n.tot-n.pk)+(n.pk?' anak lain ▸':' anak ▸')}</button>`;}
+n.gs.forEach((g,gi)=>{
+const ax=ul+g.ax,ay=y0+g.ay,kd=g.kids,mem=[n.id,g.k].filter(Boolean);
+if(n.stack){
+const c=n.cols[gi],sx=ul+c.sx,ly=pos[kd[kd.length-1].id].y+H/2;
+sv+=`<path d="M${ax} ${ay}V${yb}H${sx}V${ly}"/>`;
+kd.forEach(k=>{const cy=pos[k.id].y+H/2;sv+=`<path d="M${sx} ${cy}H${sx+SP}"${sa(lt(k.id,mem))}/>`;if(isOn(k.id)&&isOn(n.id))hl+=`<path d="M${ax} ${ay}V${yb}H${sx}V${cy}H${sx+SP}"/>`;});
+}else{
+const xs=[ax,...kd.map(k=>cx(k.id))];
+sv+=`<path d="M${ax} ${ay}V${yb}M${Math.min(...xs)} ${yb}H${Math.max(...xs)}"/>`;
+kd.forEach(k=>{sv+=`<path d="M${cx(k.id)} ${yb}V${pos[k.id].y}"${sa(lt(k.id,mem))}/>`;if(isOn(k.id)&&isOn(n.id))hl+=`<path d="M${ax} ${ay}V${yb}H${cx(k.id)}V${pos[k.id].y}"/>`;});
+}
+if(!n.tg&&!(pm&&isOn(n.id))){n.tg=1;cd+=`<button class="tg" data-act="col" data-id="${n.id}" aria-label="Lipat keluarga" style="left:${ax}px;top:${yb}px">−</button>`;}
+});
+n.kids.forEach(walk);};
+walk(L.tr.root);
+const up=n=>{if(!n.ps.length)return;const yb=pos[n.ps[0]].y+H+V/2,used=new Set();
+n.ps.forEach(p=>{if(used.has(p))return;used.add(p);const q=n.ps.find(o=>!used.has(o)&&lnk(p,o));let ax=cx(p),ay=pos[p].y+H;if(q){used.add(q);ax=(cx(p)+cx(q))/2;ay=pos[p].y+H/2;}
+sv+=`<path d="M${ax} ${ay}V${yb}H${cx(n.id)}V${pos[n.id].y}"${sa(lk(n.id,p))}/>`;});
+n.ch.forEach(up);};
+if(!pm)up(L.tr.aroot);
+// garis pasangan menurut status: menikah (ganda), cerai (putus dengan tanda), pisah (putus-putus), wafat (ganda + label)
+const all=Object.keys(pos);
+S.sp.forEach(s=>{const A=pos[s.a],B=pos[s.b];if(!A||!B||A.y!==B.y)return;
+const[l,r]=A.x<B.x?[A,B]:[B,A],y=l.y+H/2,t=s.t||'menikah',x1=l.x+W,x2=r.x,m=(x1+x2)/2,pd=s.pend?' class="pd"':'',dsh=t==='pisah'?' stroke-dasharray="6 5"':'';
+const blocked=all.some(i=>pos[i]!==A&&pos[i]!==B&&pos[i].y===A.y&&pos[i].x>l.x&&pos[i].x<r.x);
+if(blocked){const xa=l.x+W/2,xb=r.x+W/2,yy=l.y+H;sv+=`<path d="M${xa} ${yy}V${yy+UD}H${xb}V${yy}" stroke-width="3"${dsh}${pd}/>`;
+if(t!=='menikah')cd+=`<span class="lc" style="left:${(xa+xb)/2+60}px;top:${yy+UD-8}px">${SL2[t]||''}${s.y?' '+s.y:''}</span>`;}
+else{
+if(t==='cerai')sv+=`<path d="M${x1} ${y}H${m-9}M${m+9} ${y}H${x2}M${m-7} ${y+7}L${m-1} ${y-7}M${m+1} ${y+7}L${m+7} ${y-7}" stroke-width="3"${pd}/>`;
+else if(t==='pisah')sv+=`<path d="M${x1} ${y}H${x2}" stroke-width="3"${dsh}${pd}/>`;
+else sv+=`<path d="M${x1} ${y-3}H${x2}M${x1} ${y+3}H${x2}"${pd}/>`;
+if(t!=='menikah')cd+=`<span class="lc" style="left:${m}px;top:${y-26}px">${SL2[t]||''}${s.y?' '+s.y:''}</span>`;}});
+const ctx=new Set();if(pm)(function t(n){if(isOn(n.id))n.u.forEach(i=>ctx.add(i));n.kids.forEach(t);})(L.tr.root);
 const ids=Object.keys(pos).filter(i=>pos[i].k==='f'||pos[i].k==='c1');
-if(ids.length>1){const xs=ids.map(i=>pos[i].x),ys=ids.map(i=>pos[i].y),x=Math.min(...xs)-14,y=Math.min(...ys)-14,w=Math.max(...xs)+W+14-x,h=Math.max(...ys)+H+14-y;bd=`<div class="band" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div><span class="bl" style="left:${x+14}px;top:${y-9}px">Keluarga inti</span>`;}
-Object.entries(pos).forEach(([id,q])=>{const p=P(id);const cl=['card',id===S.focus&&'f',(q.k==='f'||q.k==='c1')&&id!==S.focus&&'in',p.pend&&'p',p.u&&'u',id===S.sel&&'sel'].filter(Boolean).join(' ');cd+=`<button class="${cl}" data-act="sel" data-id="${id}" style="left:${q.x}px;top:${q.y}px"><span>${esc(p.n)}</span><small>${p.pend?'Menunggu':sub(p)}</small></button>`;});
-
-const st=$('#stage');st.style.cssText=`width:${L.cw}px;height:${L.ch}px;transform:translate(${S.x}px,${S.y}px) scale(${S.z});transform-origin:0 0`;
-st.innerHTML=bd+`<svg width="${L.cw}" height="${L.ch}" aria-hidden="true">${sv}</svg>`+cd;return L;
+if(!pm&&ids.length>1){const xs=ids.map(i=>pos[i].x),ys=ids.map(i=>pos[i].y),x=Math.min(...xs)-14,y=Math.min(...ys)-14,w=Math.max(...xs)+W+14-x,h=Math.max(...ys)+H+14-y;bd=`<div class="band" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div><span class="bl" style="left:${x+14}px;top:${y-9}px">Keluarga inti</span>`;}
+Object.entries(pos).forEach(([id,q])=>{const p=P(id),rl=S.par.find(l=>l.c===id&&l.t!=='biologis'),isA=pm&&id===S.anchor,pth=pm&&isOn(id)&&!isA;
+let top='';if(isA)top='Acuan';else if(pth){const d=lvl[id]-lvl[S.anchor];top=d<0?`${-d} generasi di atas`:d>0?`${d} generasi di bawah`:'Segenerasi';}
+const cl=['card',id===S.focus&&'f',!pm&&(q.k==='f'||q.k==='c1')&&id!==S.focus&&'in',p.pend&&'p',p.u&&'u',id===S.sel&&'sel',isA&&'ank',pth&&'pth',pm&&!ctx.has(id)&&'dim'].filter(Boolean).join(' ');
+cd+=`<button class="${cl}" data-act="sel" data-id="${id}" style="left:${q.x}px;top:${q.y}px"><span>${esc(p.n)}</span><small>${p.pend?'Menunggu':sub(p)}</small>${top?`<em class="tag">${top}</em>`:''}${rl?`<em class="tag bt">${TG[rl.t]||rl.t}</em>`:''}</button>`;});
+const stg=$('#stage');stg.style.cssText=`width:${L.cw}px;height:${L.ch}px;transform:translate(${S.x}px,${S.y}px) scale(${S.z});transform-origin:0 0`;
+stg.innerHTML=bd+`<svg width="${L.cw}" height="${L.ch}" aria-hidden="true">${sv}<g class="hl">${hl}</g></svg>`+cd;
+const lg=$('#lg2');if(lg){lg.className=pm?'lg2 o':'lg2';if(pm)lg.innerHTML=`Acuan: <b>${esc(P(S.anchor).n)}</b><br><span class="sw ank"></span>Acuan<span class="sw pth"></span>Jalur<span class="sw f"></span>Fokus`;}
+const pb=$('#pb');if(pb)pb.setAttribute('aria-pressed',String(pm));
+return L;
 }
 function ctr(L){const q=L.pos[S.focus];if(!q)return;S.x=vp.clientWidth/2-(q.x+L.W/2)*S.z;S.y=vp.clientHeight/2-(q.y+L.H/2)*S.z;ap();}
-const fit=L=>Math.max(.5,Math.min(1,vp.clientWidth/L.cw));
+const fit=L=>Math.max(.35,Math.min(1,vp.clientWidth/L.cw));
 function ap(){$('#stage').style.transform=`translate(${S.x}px,${S.y}px) scale(${S.z})`;}
 function zm(n,cx,cy){n=Math.min(1.6,Math.max(.3,n));S.x=cx-(cx-S.x)*n/S.z;S.y=cy-(cy-S.y)*n/S.z;S.z=n;ap();}
 function zoom(d){zm(S.z+d,vp.clientWidth/2,vp.clientHeight/2);}
@@ -158,16 +294,18 @@ function hdr(){views();$('#pc').textContent=S.props.length+' menunggu';document.
 const nm=a=>a.length?a.map(i=>esc(P(i).n)).join(', '):'—';
 function shPerson(){const id=S.sel,p=P(id),o=S.role==='owner';
 const st=p.pend?'Menunggu persetujuan':p.u?'Belum diketahui':p.c?'Sudah dikonfirmasi keluarga':'Belum diverifikasi';
-return `<div class="rw"><div><div class="t">${esc(p.n)}</div><div class="m">Lahir ${p.u?'?':(p.ap?'sekitar ':'')+(p.y||'?')} · ${st}</div></div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>
-<div class="m"><b>Orang tua:</b> ${nm(parOf(id))}<br><b>Pasangan:</b> ${nm(spOf(id))}<br><b>Anak:</b> ${nm(chOf(id))}</div>
+return `<div class="rw"><div><div class="t">${esc(p.n)}</div><div class="m">Lahir ${p.u?'?':(p.ap?'sekitar ':'')+(p.y||'?')} · ${st} · ${p.g==='L'?'Laki-laki':p.g==='P'?'Perempuan':'jenis kelamin belum diisi'}</div></div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>
+<div class="m"><b>Orang tua:</b> ${plist(id)}<br><b>Pasangan:</b> ${slist(id)}<br><b>Anak:</b> ${nm(chOf(id))}</div>
 <div class="g2"><button class="b" data-act="focus">Jadikan fokus</button><button class="b o2" data-act="edit">${o?'Ubah data':'Ajukan perubahan'}</button></div>
-<button class="b o2" data-act="trace">Telusuri hubungan</button>
+<div class="g2"><button class="b o2" data-act="trace">Telusuri hubungan</button><button class="b o2" data-act="anchor">Jadikan acuan</button></div>
 <div class="h">Tambah relasi</div>
 <div class="g3"><button class="b o2" data-act="add" data-id="parent">+ Orang tua</button><button class="b o2" data-act="add" data-id="spouse">+ Pasangan</button><button class="b o2" data-act="add" data-id="child">+ Anak</button></div>
 <div class="m">${o?'Pasangan langsung tersimpan. Orang tua dan anak menunggu persetujuan Owner atau Admin lain.':'Sebagai Contributor, semua perubahan berupa pengajuan.'}</div>`;}
 function shForm(){const f=S.form,p=P(f.of),e=f.k==='edit',pd=e?S.role==='contributor':willPend(f.k);
 return `<div class="rw"><div class="t">${e?(S.role==='owner'?'Ubah data ':'Ajukan perubahan ')+esc(p.n):'Tambah '+LB[f.k]+' untuk '+esc(p.n)}</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>
 <label for="fn">Nama utama</label><input id="fn" value="${esc(f.name)}" autocomplete="off">
+<label>Jenis kelamin (opsional)</label><div class="cr">${[['L','Laki-laki'],['P','Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(f.g||'')===v?' on':''}" data-act="gd" data-id="${v}" aria-pressed="${(f.g||'')===v}">${l}</button>`).join('')}</div><div class="m">Hanya dipakai untuk urutan pasangan di pohon.</div>
+${f.k==='spouse'?`<label>Status hubungan</label><div class="cr">${[['menikah','Menikah'],['cerai','Cerai'],['pisah','Pisah'],['wafat','Pasangan wafat']].map(([v,l])=>`<button class="ch${f.ss===v?' on':''}" data-act="ss" data-id="${v}" aria-pressed="${f.ss===v}">${l}</button>`).join('')}</div>`:''}
 <label for="fy">Tahun lahir (opsional)</label><div class="rw"><input id="fy" inputmode="numeric" value="${esc(f.year)}"><button class="ch${f.ap?' on':''}" data-act="apx" aria-pressed="${!!f.ap}">Perkiraan</button></div>
 ${f.k==='parent'||f.k==='child'?`<label>Jenis hubungan</label><div class="cr">${TY.map(([v,l])=>`<button class="ch${f.ty===v?' on':''}" data-act="ty" data-id="${v}" aria-pressed="${f.ty===v}">${l}</button>`).join('')}</div>`:''}
 ${e?`<label>Status</label><div class="cr"><button class="ch${f.c?'':' on'}" data-act="st" data-id="0">Belum diverifikasi</button><button class="ch${f.c?' on':''}" data-act="st" data-id="1">Sudah dikonfirmasi</button></div>`:''}
@@ -182,7 +320,7 @@ function done(){S.ui=null;S.sel=null;S.form=null;}
 function save(){sync();const f=S.form,name=f.name.trim();
 if(!name){toast('Nama utama wajib diisi');return;}
 f.name=name;
-if(f.k==='edit'){const id=f.of,ch={n:name,y:f.year.trim(),ap:f.ap,c:f.c?1:0};
+if(f.k==='edit'){const id=f.of,ch={n:name,y:f.year.trim(),ap:f.ap,c:f.c?1:0,g:f.g||''};
 if(S.role==='owner'){Object.assign(P(id),ch);lg('Ubah data: '+name);toast('Perubahan tersimpan');}
 else{prop('Ubah data '+P(id).n+' menjadi '+name,()=>Object.assign(P(id),ch),()=>{});toast('Diajukan, menunggu persetujuan');}
 done();tree();sheet();hdr();return;}
@@ -190,8 +328,8 @@ const dup=!f.skip&&Object.keys(S.people).find(i=>i!==f.of&&P(i).n.toLowerCase()=
 if(dup){f.dup=dup;sheet();return;}
 commit('p'+(++S.n),true);}
 function commit(id,isNew){const f=S.form,pd=willPend(f.k),X=f.of,sp=f.k==='spouse';
-if(isNew)S.people[id]={n:f.name,y:f.year.trim(),ap:f.ap,pend:pd};
-const L=sp?{a:X,b:id,pend:pd}:{c:f.k==='parent'?X:id,p:f.k==='parent'?id:X,t:f.ty,pend:pd},arr=sp?S.sp:S.par;
+if(isNew)S.people[id]={n:f.name,y:f.year.trim(),ap:f.ap,g:f.g||'',pend:pd};
+const L=sp?{a:X,b:id,t:f.ss||'menikah',pend:pd}:{c:f.k==='parent'?X:id,p:f.k==='parent'?id:X,t:f.ty,pend:pd},arr=sp?S.sp:S.par;
 arr.push(L);
 if(pd)prop('Tambah '+LB[f.k]+': '+P(id).n,()=>{L.pend=false;if(isNew)P(id).pend=false;},()=>{arr.splice(arr.indexOf(L),1);if(isNew)delete S.people[id];});
 lg((pd?'Ajukan ':'Tambah ')+LB[f.k]+': '+P(id).n);S.focus=X;done();ctr(tree());sheet();hdr();toast(pd?'Diajukan, menunggu persetujuan':'Tersimpan');}
@@ -200,7 +338,7 @@ const lg=t=>S.log.push((S.role==='owner'?'Owner':'Contributor')+': '+t);
 function views(){
 const n=S.props.length,o=S.role==='owner',hd=t=>`<div class="t" style="font-size:22px">${t}</div>`;
 $('#nb').textContent=n||'';
-$('#v-beranda').innerHTML=`<div class="rw" style="justify-content:flex-start;gap:12px"><div class="av" aria-hidden="true">A</div><div>${hd('Halo, Ahmad')}<div class="m">Pilih pohon keluarga yang mau dibuka</div></div></div>
+$('#v-beranda').innerHTML=`<div class="rw" style="justify-content:flex-start;gap:12px"><div class="av" aria-hidden="true">A</div><div>${hd('Halo, Ahmad Fauzi Rahman')}<div class="m">Pilih pohon keluarga yang mau dibuka</div></div></div>
 <button class="tc" data-act="tab" data-id="pohon" style="border:2px solid var(--acc)"><div class="rw"><b class="t">Keluarga Ahmad</b><span class="bd2 on">${o?'Owner':'Contributor'}</span></div><div class="m">${n} perubahan menunggu persetujuan</div><b style="color:var(--acc)">Buka pohon ›</b></button>
 <div class="tc"><div class="rw"><b class="t">Keluarga Siti</b><span class="bd2">Contributor</span></div><div class="m">Anda bisa mengajukan perubahan data</div></div>
 <div class="tc" style="border-style:dashed"><div class="rw"><b class="t">Keluarga Hasan</b><span class="bd2">Menunggu</span></div><div class="m">Permintaan bergabung menunggu persetujuan Admin. Isi pohon belum bisa dilihat.</div></div>
@@ -223,7 +361,7 @@ let h=`<div class="h">Jalur utama · ${path.length} langkah</div><div class="c">
 path.forEach(([x,e])=>{h+=`<div class="m">${e[3]?'┄':'│'} ${e[2]}</div><b>${esc(P(e[1]).n)}</b>`;});
 return h+'</div><div class="m">Langkah paling sedikit bukan berarti hubungan darah terdekat. ┄ berarti angkat, tiri, atau wali. Jalur setara lain belum ditampilkan di prototipe.</div>';}
 function shTrace(){const a=S.sel,o=Object.keys(S.people).filter(i=>i!==a&&!P(i).pend).map(i=>`<option value="${i}"${S.tr===i?' selected':''}>${esc(P(i).n)}</option>`).join('');
-return `<div class="rw"><div class="t">Telusuri hubungan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div><label for="tg">Dari <b>${esc(P(a).n)}</b> ke</label><select id="tg">${o}</select><button class="b" data-act="tgo">Telusuri</button>${S.tr?tracePath(a,S.tr):''}`;}
+return `<div class="rw"><div class="t">Telusuri hubungan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div><label for="tg">Dari <b>${esc(P(a).n)}</b> ke</label><select id="tg">${o}</select><button class="b" data-act="tgo">Telusuri</button>${S.tr?tracePath(a,S.tr)+'<button class="b o2" data-act="tshow">Tampilkan jalur di pohon</button>':''}`;}
 $('#app').addEventListener('click',e=>{
 if(mv>6&&e.target.closest('#vp')){mv=0;return;}
 const el=e.target.closest('[data-act]');if(!el)return;
@@ -231,9 +369,9 @@ const a=el.dataset.act,id=el.dataset.id,f=S.form;
 switch(a){
 case'sel':S.sel=id;S.ui='person';S.form=null;tree();sheet();break;
 case'close':done();tree();sheet();break;
-case'focus':S.focus=S.sel;done();ctr(tree());sheet();break;
-case'edit':{const p=P(S.sel);S.form={k:'edit',of:S.sel,name:p.n,year:p.y||'',ap:!!p.ap,c:!!p.c};S.ui='form';sheet();break;}
-case'add':S.form={k:id,of:S.sel,name:'',year:'',ap:false,ty:'biologis'};S.ui='form';sheet();break;
+case'focus':S.focus=S.sel;if(S.path&&(S.focus===S.anchor||!pathInfo(S.focus,S.anchor))){S.path=false;toast('Jalur dimatikan: fokus tidak punya jalur keturunan ke acuan');}done();ctr(tree());sheet();break;
+case'edit':{const p=P(S.sel);S.form={k:'edit',of:S.sel,name:p.n,year:p.y||'',ap:!!p.ap,c:!!p.c,g:p.g||''};S.ui='form';sheet();break;}
+case'add':S.form={k:id,of:S.sel,name:'',year:'',ap:false,ty:'biologis',g:'',ss:'menikah'};S.ui='form';sheet();break;
 case'apx':sync();f.ap=!f.ap;sheet();break;
 case'ty':sync();f.ty=id;sheet();break;
 case'st':sync();f.c=id==='1';sheet();break;
@@ -247,12 +385,18 @@ case'trace':S.ui='trace';S.tr=null;sheet();break;
 case'tgo':S.tr=$('#tg').value;sheet();break;
 case'ok':case'no':resolve(+id,a==='ok');break;
 case'role':S.role=id;hdr();sheet();break;
+case'col':{const L0=layout(),o=L0.pos[id],set=L0.pm?S.exp:S.col;if(set.has(id))set.delete(id);else set.add(id);const L=tree(),n=L.pos[id];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}break;}
+case'path':{if(S.path){S.path=false;S.exp.clear();}else if(S.focus===S.anchor){toast('Fokus sama dengan acuan');break;}else if(!pathInfo(S.focus,S.anchor)){toast('Tidak ada jalur keturunan. Pakai Telusuri hubungan.');break;}else{S.path=true;S.exp.clear();}ctr(tree());break;}
+case'anchor':S.anchor=S.sel;if(S.path&&(S.focus===S.anchor||!pathInfo(S.focus,S.anchor))){S.path=false;toast('Acuan diganti, jalur dimatikan');}else toast('Acuan diganti');done();ctr(tree());sheet();break;
+case'tshow':{const fr=S.sel,to=S.tr;if(!to)break;if(!pathInfo(fr,to)){toast('Jalur lewat pasangan, belum bisa digambar di pohon');break;}S.focus=fr;S.anchor=to;S.path=true;S.exp.clear();done();ctr(tree());sheet();break;}
+case'gd':sync();f.g=id;sheet();break;
+case'ss':sync();f.ss=id;sheet();break;
 case'zin':zoom(.15);break;
 case'zout':zoom(-.15);break;
 case'fit':S.z=fit(layout());ctr(tree());break;
 }});
-prop('Ubah jenis relasi Dimas dari angkat menjadi kandung (diajukan Rina)',()=>S.par.forEach(l=>{if(l.c==='d')l.t='biologis';}),()=>{});
-prop('Permintaan bergabung: Dewi sebagai Contributor (diundang Admin Budi)',()=>S.members.push('Dewi (Contributor)'),()=>{});
+prop('Ubah jenis relasi Dimas Pratama dari angkat menjadi kandung (diajukan Rina Kartika)',()=>S.par.forEach(l=>{if(l.c==='d')l.t='biologis';}),()=>{});
+prop('Permintaan bergabung: Dewi Anggraeni sebagai Contributor (diundang Admin Budi Santoso)',()=>S.members.push('Dewi Anggraeni (Contributor)'),()=>{});
 let lw=0;const rf=()=>{const w=vp.clientWidth;if(w&&w!==lw){lw=w;S.z=fit(layout());ctr(tree());}};
 hdr();tree();rf();if(window.ResizeObserver)new ResizeObserver(rf).observe(vp);
 })();
