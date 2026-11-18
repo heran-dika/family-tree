@@ -10,7 +10,7 @@
     {
       "binding": "DB",
       "database_name": "family-tree-db",
-      "database_id": "database_id": "d6647337-4a19-406a-a7b7-a5ad9dc8c94f"
+      "database_id": "d6647337-4a19-406a-a7b7-a5ad9dc8c94f"
     }
   ],
   "observability": { "enabled": true }
