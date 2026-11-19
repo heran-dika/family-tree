@@ -98,11 +98,11 @@ export async function markStale(db, treeId, personId, exceptProposalId = null) {
   return res[1].meta.changes;
 }
 
-// Menutup proposal yang masih pending. Perubahan status dan audit dalam satu batch.
-// Audit hanya masuk bila pembaruan ini yang benar-benar menutup proposal (aman dari balapan dua penyetuju).
-async function closePending(db, t, { proposalId, actorId, status, action, reason, now }) {
+// Pernyataan penutupan proposal (UPDATE status + audit). Dipisah supaya bisa digabung ke batch lain
+// (mis. penerapan usulan). Audit hanya masuk bila pembaruan ini yang benar-benar menutup proposal.
+export function closeStmts(t, { proposalId, actorId, status, action, reason, now }) {
   const at = sqlTime(now);
-  const [upd] = await db.batch([
+  return [
     t.stmt(
       "UPDATE proposals SET status = ?2, decided_by = ?3, decided_at = ?4, rejection_reason = ?5 WHERE tree_id = ?1 AND id = ?6 AND status = 'pending'",
       [status, actorId, at, status === 'rejected' ? reason : null, proposalId]
@@ -111,8 +111,12 @@ async function closePending(db, t, { proposalId, actorId, status, action, reason
       `${AUDIT_COLS} SELECT lower(hex(randomblob(16))), tree_id, ?2, ?3, 'proposal', id, before_json, after_json, ?4 FROM proposals WHERE tree_id = ?1 AND id = ?5 AND status = ?6 AND decided_by = ?2 AND decided_at = ?7`,
       [actorId, action, reason, proposalId, status, at]
     ),
-  ]);
-  return upd.meta.changes === 1 ? { ok: true, status } : fail('not_pending');
+  ];
+}
+
+async function closePending(db, t, args) {
+  const [upd] = await db.batch(closeStmts(t, args));
+  return upd.meta.changes === 1 ? { ok: true, status: args.status } : fail('not_pending');
 }
 
 export async function decideProposal(db, { treeId, proposalId, deciderId, action, reason = null, now = new Date() }) {
