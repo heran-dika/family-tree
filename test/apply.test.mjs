@@ -633,7 +633,7 @@ const addTree = (e) =>
     ('old','t1','Old','1950','year'),('mid','t1','Mid','1980','year'),('young','t1','Young','2000','year')`);
 const edge = (e, id) => e.sqlite.prepare('SELECT * FROM parent_child_edges WHERE id = ?').get(id);
 const nEdge = (e) => e.count('SELECT COUNT(*) n FROM parent_child_edges');
-const ec = (over = {}) => ({ action: 'create', parent_id: 'a1', child_id: 'a2', relation_type: 'biological', ...over });
+const ec = (over = {}) => ({ action: 'create', parent_id: 'a1', child_id: 'a2', relation_type: 'biological', parent_role: 'father', ...over });
 const eprop = (e, after, over = {}) => propose(e, { kind: 'parent_child', targetPersonId: null, after, ...over });
 const direct = (e, who, after, treeId = 't1') => applyDirect(e.db, { treeId, actorId: who, kind: 'parent_child', after, now: T0 });
 const mkEdge = async (e, over = {}) => {
@@ -652,6 +652,13 @@ test('cleanEdge create: titik ujung, jenis, peran, dan label divalidasi', () => 
   assert.equal(cleanEdge(ec({ relation_type: undefined })).code, 'invalid_relation_type');
   assert.equal(cleanEdge(ec({ relation_type: 'darah' })).code, 'invalid_relation_type');
   assert.equal(cleanEdge(ec({ parent_role: 'kakek' })).code, 'invalid_parent_role');
+  // tidak ada peran netral (U3 dicabut): 'parent' ditolak, dan peran wajib diisi
+  assert.equal(cleanEdge(ec({ parent_role: 'parent' })).code, 'invalid_parent_role');
+  assert.equal(cleanEdge(ec({ parent_role: null })).code, 'invalid_parent_role');
+  assert.equal(cleanEdge(ec({ parent_role: undefined })).code, 'invalid_parent_role');
+  const { parent_role: _omit, ...noRole } = ec();
+  assert.equal(cleanEdge(noRole).code, 'invalid_parent_role');
+  assert.equal(cleanEdge({ action: 'update', edge_id: 'x', parent_role: 'parent' }).code, 'invalid_parent_role');
   assert.equal(cleanEdge(ec({ child_id: 'a1' })).code, 'same_person');
   assert.equal(cleanEdge(ec({ child_id: undefined })).code, 'invalid_endpoints');
   assert.equal(cleanEdge(ec({ parent_id: undefined })).code, 'invalid_endpoints');
@@ -661,7 +668,7 @@ test('cleanEdge create: titik ujung, jenis, peran, dan label divalidasi', () => 
   assert.equal(cleanEdge(ec({ relation_type: 'custom', custom_label: 'x'.repeat(101) })).code, 'custom_label_too_long');
   assert.equal(cleanEdge(ec({ custom_label: 'Pengasuh' })).code, 'custom_label_not_allowed');
   const ok = cleanEdge(ec());
-  assert.deepEqual(ok.values, { relation_type: 'biological', parent_role: 'parent', custom_label: null });
+  assert.deepEqual(ok.values, { relation_type: 'biological', parent_role: 'father', custom_label: null });
   assert.equal(cleanEdge(ec({ relation_type: 'custom', custom_label: ' Pengasuh ', parent_role: 'mother' })).values.custom_label, 'Pengasuh');
   for (const relation_type of ['biological', 'adoptive', 'step', 'guardian']) assert.equal(cleanEdge(ec({ relation_type })).ok, true, relation_type);
 });
@@ -865,7 +872,7 @@ test('ubah relasi: jenis, peran, dan label; label dibersihkan saat keluar dari c
   assert.deepEqual({ t: edge(e, eid).relation_type, r: edge(e, eid).parent_role }, { t: 'biological', r: 'mother' });
   const a = e.sqlite.prepare("SELECT * FROM audit_events WHERE action='parent_child.update'").get();
   assert.equal(a.target_type, 'parent_child');
-  assert.deepEqual(JSON.parse(a.before_json), { relation_type: 'adoptive', parent_role: 'parent' });
+  assert.deepEqual(JSON.parse(a.before_json), { relation_type: 'adoptive', parent_role: 'father' });
   assert.deepEqual(JSON.parse(a.after_json), { relation_type: 'biological', parent_role: 'mother' });
   assert.equal((await up({ relation_type: 'custom' })).code, 'custom_label_required');
   assert.equal((await up({ relation_type: 'custom', custom_label: 'Pengasuh' })).ok, true);
@@ -972,7 +979,7 @@ test('langsung: di pohon dengan Admin, Owner pun harus lewat usulan; Contributor
 test('Mode Penyusunan Awal: Owner tunggal langsung, berakhir saat ada Admin kedua', async () => {
   const e = env(); // t2 hanya punya satu Owner
   e.sqlite.exec("INSERT INTO people(id,tree_id,display_name) VALUES ('q1','t2','Q1'),('q2','t2','Q2')");
-  const r = await direct(e, 'owner', { action: 'create', parent_id: 'q1', child_id: 'q2', relation_type: 'biological' }, 't2');
+  const r = await direct(e, 'owner', { action: 'create', parent_id: 'q1', child_id: 'q2', relation_type: 'biological', parent_role: 'father' }, 't2');
   assert.equal(r.ok, true);
   assert.equal(edge(e, r.edgeId).tree_id, 't2');
   const ph = await direct(e, 'owner', { action: 'create', child_id: 'q1', new_person: { display_name: 'Ayah dari Q1', is_placeholder: true }, relation_type: 'biological', parent_role: 'father' }, 't2');
@@ -982,13 +989,13 @@ test('Mode Penyusunan Awal: Owner tunggal langsung, berakhir saat ada Admin kedu
   assert.equal((await direct(e, 'owner', { action: 'delete', edge_id: r.edgeId }, 't2')).ok, true);
   assert.equal(e.audits('parent_child.create'), 2);
   e.sqlite.exec("INSERT INTO memberships(tree_id,account_id,role,status) VALUES ('t2','admin','admin','active')");
-  assert.equal((await direct(e, 'owner', { action: 'create', parent_id: 'q2', child_id: 'q1', relation_type: 'biological' }, 't2')).code, 'needs_proposal');
+  assert.equal((await direct(e, 'owner', { action: 'create', parent_id: 'q2', child_id: 'q1', relation_type: 'biological', parent_role: 'father' }, 't2')).code, 'needs_proposal');
 });
 
 test('langsung (Mode Penyusunan Awal): siklus, dobel, dan orang pohon lain tetap ditolak', async () => {
   const e = env();
   e.sqlite.exec("INSERT INTO people(id,tree_id,display_name) VALUES ('q1','t2','Q1'),('q2','t2','Q2')");
-  const c = (p, ch) => direct(e, 'owner', { action: 'create', parent_id: p, child_id: ch, relation_type: 'biological' }, 't2');
+  const c = (p, ch) => direct(e, 'owner', { action: 'create', parent_id: p, child_id: ch, relation_type: 'biological', parent_role: 'father' }, 't2');
   assert.equal((await c('q1', 'q2')).ok, true);
   assert.equal((await c('q2', 'q1')).code, 'would_create_cycle');
   assert.equal((await c('q1', 'q2')).code, 'duplicate_edge');

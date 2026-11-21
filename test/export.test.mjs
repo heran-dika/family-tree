@@ -22,7 +22,7 @@ function env() {
       ('z','t2','Orang Lain',NULL,NULL,'1970-01-01','full','full',1,NULL,'unknown',NULL,'unverified');
     INSERT INTO people(id,tree_id,display_name,is_placeholder,placeholder_of,archived_at) VALUES ('ph','t1','Ayah dari Ahmad',1,'a',NULL),('ar','t1','Diarsipkan',0,NULL,'2026-01-01');
     INSERT INTO parent_child_edges(id,tree_id,parent_id,child_id,relation_type,parent_role) VALUES
-      ('e1','t1','ph','a','biological','father'),('e2','t1','a','k','adoptive','parent');
+      ('e1','t1','ph','a','biological','father'),('e2','t1','a','k','adoptive','mother');
   `);
   e.sqlite.exec(`
     INSERT INTO people(id,tree_id,display_name) VALUES ('z2','t2','Anak Orang Lain');
@@ -54,7 +54,7 @@ test('bentuk berkas, isi pohon, isolasi pohon, dan audit dengan jumlah', async (
   assert.equal(doc.people.some((p) => p.id === 'z'), false);
   assert.deepEqual(doc.nameVariants, [{ person: 'a', variant: 'Achmad' }, { person: 'a', variant: 'Ahmat' }]);
   assert.deepEqual(doc.parentChild, [
-    { parent: 'a', child: 'k', type: 'adoptive', role: 'parent', customLabel: null },
+    { parent: 'a', child: 'k', type: 'adoptive', role: 'mother', customLabel: null },
     { parent: 'ph', child: 'a', type: 'biological', role: 'father', customLabel: null },
   ]);
   assert.deepEqual(doc.partnerships, [{ a: 'a', b: 'b', status: 'married', startYear: 1986, endYear: null }]);

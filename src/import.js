@@ -141,7 +141,7 @@ export function validateImport(input, { now = new Date() } = {}) {
     if (Object.keys(r).some((k) => !EDGE.includes(k))) return err(path, 'unknown_field');
     const c = cleanEdge({
       action: 'create', parent_id: r.parent, child_id: r.child, relation_type: r.type,
-      parent_role: r.role ?? 'parent', custom_label: r.customLabel ?? null,
+      parent_role: r.role, custom_label: r.customLabel ?? null,
     });
     if (!c.ok) return err(path, c.code);
     if (!known(c.parentId) || !known(c.childId)) return err(path, 'unknown_person');

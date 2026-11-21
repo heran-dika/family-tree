@@ -15,14 +15,14 @@ const doc = (over = {}) => ({
 const V = (d) => validateImport(d, { now: NOW });
 const codes = (d) => V(d).errors?.map((e) => `${e.path}:${e.code}`);
 const one = (d, path, code) => assert.deepEqual(codes(d), [`${path}:${code}`]);
-const edge = (over = {}) => ({ parent: 'a', child: 'b', type: 'biological', role: 'parent', customLabel: null, ...over });
+const edge = (over = {}) => ({ parent: 'a', child: 'b', type: 'biological', role: 'father', customLabel: null, ...over });
 
 test('berkas minimal valid: data dinormalkan, ringkasan benar', () => {
   const r = V(doc({ parentChild: [edge()], partnerships: [{ a: 'a', b: 'c', status: 'married', startYear: 1990, endYear: null }], nameVariants: [{ person: 'a', variant: ' Achmad ' }] }));
   assert.equal(r.ok, true);
   assert.deepEqual(r.summary, { people: 3, archived: 0, placeholders: 0, nameVariants: 1, parentChild: 1, partnerships: 1, hiddenBirthDates: 0, warningCounts: {} });
   assert.deepEqual(r.data.nameVariants, [{ person_id: 'a', variant: 'Achmad' }]);
-  assert.deepEqual(r.data.parentChild[0], { parent_id: 'a', child_id: 'b', relation_type: 'biological', parent_role: 'parent', custom_label: null });
+  assert.deepEqual(r.data.parentChild[0], { parent_id: 'a', child_id: 'b', relation_type: 'biological', parent_role: 'father', custom_label: null });
   assert.deepEqual(r.data.partnerships[0], { person_a: 'a', person_b: 'c', status: 'married', start_year: 1990, end_year: null });
   assert.equal(r.data.people[0].fields.display_name, 'Orang a');
   assert.equal(r.data.people[0].fields.birth_precision, 'unknown');
@@ -136,7 +136,11 @@ test('relasi: jenis, peran, label, orang, diri sendiri, dobel (apa pun jenisnya)
   one(pc(edge({ tree_id: 't' })), 'parentChild[0]', 'unknown_field');
   one(pc(edge(), edge({ type: 'adoptive' })), 'parentChild[1]', 'duplicate_edge');
   assert.equal(V(pc(edge(), edge({ parent: 'b', child: 'c' }), edge({ parent: 'a', child: 'c' }))).ok, true);
-  assert.equal(V(pc({ parent: 'a', child: 'b', type: 'step' })).data.parentChild[0].parent_role, 'parent'); // bawaan
+  // tanpa peran netral (U3 dicabut): peran wajib dan hanya father atau mother
+  one(pc({ parent: 'a', child: 'b', type: 'step' }), 'parentChild[0]', 'invalid_parent_role');
+  one(pc(edge({ role: 'parent' })), 'parentChild[0]', 'invalid_parent_role');
+  one(pc(edge({ role: null })), 'parentChild[0]', 'invalid_parent_role');
+  assert.equal(V(pc(edge({ role: 'mother' }))).data.parentChild[0].parent_role, 'mother');
 });
 
 test('siklus ditolak: langsung, berantai, semua jenis relasi; jalur berlian bukan siklus', () => {
@@ -171,10 +175,10 @@ test('peringatan lunak tidak memblokir dan dihitung per jenis', () => {
   const r = V(doc({
     people: [P('a', { birth: yr(1990), death: yr(1980) }), P('b', { birth: yr(1850) }), P('young', { birth: full('2000-06-01') }), P('old', { birth: full('1999-05-01') }), P('older', { birth: full('1950-01-01') }), P('x'), P('y')],
     parentChild: [
-      { parent: 'young', child: 'old', type: 'biological', role: 'parent', customLabel: null },
-      { parent: 'young', child: 'older', type: 'adoptive', role: 'parent', customLabel: null }, // bukan biologis, orang tua lebih muda: tanpa peringatan
-      { parent: 'young', child: 'x', type: 'guardian', role: 'parent', customLabel: null },
-      { parent: 'x', child: 'y', type: 'biological', role: 'parent', customLabel: null }, // tanggal tak diketahui: tanpa peringatan
+      { parent: 'young', child: 'old', type: 'biological', role: 'father', customLabel: null },
+      { parent: 'young', child: 'older', type: 'adoptive', role: 'father', customLabel: null }, // bukan biologis, orang tua lebih muda: tanpa peringatan
+      { parent: 'young', child: 'x', type: 'guardian', role: 'father', customLabel: null },
+      { parent: 'x', child: 'y', type: 'biological', role: 'father', customLabel: null }, // tanggal tak diketahui: tanpa peringatan
     ],
     partnerships: [{ a: 'a', b: 'b', status: 'divorced', startYear: 2000, endYear: 1990 }],
   }));

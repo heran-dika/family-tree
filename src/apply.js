@@ -151,7 +151,9 @@ export const partnershipWarnings = (p) =>
   Number.isInteger(p.start_year) && Number.isInteger(p.end_year) && p.end_year < p.start_year ? ['end_before_start'] : [];
 
 const E_TYPES = ['biological', 'adoptive', 'step', 'guardian', 'custom'];
-const E_ROLES = ['father', 'mother', 'parent'];
+// Tidak ada peran netral (U3 dicabut, PRD v1.2 G2): peran orang tua hanya Ayah atau Ibu, dan WAJIB diisi saat membuat relasi.
+// Kolom DB masih mengizinkan 'parent' lewat CHECK lama (SQLite tidak bisa mengubah CHECK); penjaganya di kode ini.
+const E_ROLES = ['father', 'mother'];
 const E_KEYS = {
   create: ['action', 'parent_id', 'child_id', 'new_person', 'relation_type', 'parent_role', 'custom_label'],
   update: ['action', 'edge_id', 'relation_type', 'parent_role', 'custom_label'],
@@ -159,7 +161,7 @@ const E_KEYS = {
 };
 
 // Validasi usulan relasi orang tua-anak.
-//   create: { action, relation_type, parent_role?, custom_label?, dan salah satu dari:
+//   create: { action, relation_type, parent_role (father|mother, wajib), custom_label?, dan salah satu dari:
 //             parent_id + child_id (dua-duanya sudah ada)
 //             child_id + new_person (orang tua baru; new_person.is_placeholder = "orang tua belum diketahui")
 //             parent_id + new_person (anak baru) }
@@ -199,7 +201,7 @@ export function cleanEdge(after) {
     if (!v.custom_label) return fail('custom_label_required');
   } else if (v.custom_label) return fail('custom_label_not_allowed');
   v.custom_label ??= null;
-  v.parent_role ??= 'parent';
+  if (!v.parent_role) return fail('invalid_parent_role');
   const { parent_id: pid, child_id: cid, new_person: np } = after;
   for (const [k, x] of [['parent_id', pid], ['child_id', cid]]) {
     if (x !== undefined && (typeof x !== 'string' || !x)) return fail(`invalid_${k}`);
