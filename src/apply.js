@@ -362,8 +362,11 @@ async function prepare(t, { kind, after, targetPersonId, role, now }) {
     row = tg.row;
     id = targetPersonId;
   }
+  // "Isi identitas" (PRD P0-4): mengganti nama placeholder mengubah profil yang sama di tempat dan melepas penanda placeholder.
+  // Relasi tidak disentuh. Mengubah field lain saja (tanpa nama baru) tidak mengubah status placeholder.
+  const fills = kind === 'person_edit' && row.is_placeholder === 1 && typeof c.values.display_name === 'string' && c.values.display_name !== row.display_name;
   return {
-    ok: true, kind, action: kind === 'person_edit' ? 'update' : 'create', v: c.values, row, id,
+    ok: true, kind, action: kind === 'person_edit' ? 'update' : 'create', v: c.values, row, id, fills,
     warnings: softWarnings({ ...(row ?? {}), ...c.values }, now),
   };
 }
@@ -458,12 +461,15 @@ function plan(t, p, { proposalId, actor, createdBy }) {
   }
   if (p.kind === 'person_edit') {
     const G = guard(ks.length + 3, proposalId);
+    const reset = p.fills ? ', is_placeholder = 0, placeholder_of = NULL' : '';
     return [
       t.stmt(
-        `UPDATE people SET ${ks.map((k, i) => `${k} = ?${i + 3}`).join(', ')}, version = version + 1, updated_at = datetime('now') WHERE tree_id = ?1 AND id = ?2 AND archived_at IS NULL AND ${G.sql}`,
+        `UPDATE people SET ${ks.map((k, i) => `${k} = ?${i + 3}`).join(', ')}${reset}, version = version + 1, updated_at = datetime('now') WHERE tree_id = ?1 AND id = ?2 AND archived_at IS NULL AND ${G.sql}`,
         [id, ...ks.map((k) => v[k]), ...G.p]
       ),
-      auditStmt(t, { actor, action: 'person.update', target: id, before, after: v, note }, proposalId),
+      auditStmt(t, p.fills
+        ? { actor, action: 'person.fill_identity', target: id, before: { ...before, is_placeholder: 1, placeholder_of: row.placeholder_of ?? null }, after: { ...v, is_placeholder: 0, placeholder_of: null }, note }
+        : { actor, action: 'person.update', target: id, before, after: v, note }, proposalId),
       ...staleStmts(t, id, proposalId),
     ];
   }
@@ -501,7 +507,7 @@ const idOut = (p) =>
     ? { partnershipId: p.id }
     : p.kind === 'parent_child'
       ? { edgeId: p.id, ...(p.newPerson ? { personId: p.newPerson.id } : {}) }
-      : { personId: p.id };
+      : { personId: p.id, ...(p.fills ? { identityFilled: true } : {}) };
 
 // Setujui usulan DAN terapkan isinya dalam satu batch.
 export async function approveAndApply(db, { treeId, proposalId, deciderId, now = new Date() }) {
