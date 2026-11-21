@@ -56,9 +56,11 @@ h1{font-size:20px;margin:0}
 .card.hint{outline:4px solid var(--pend);outline-offset:3px}
 .card.gh{border-style:dashed;background:transparent;color:var(--mut)}
 .sx{font-weight:700;font-size:1.05em}.sx.m{color:#1d6fe0}.sx.f{color:#d12a4f}.card.f .sx.m{color:#8ec1ff}.card.f .sx.f{color:#ff9db3}
+.tg2{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:1.5px solid var(--acc);background:var(--card);color:var(--acc);font-weight:700;padding:0;z-index:2}.tg2::after{content:'';position:absolute;inset:-9px}
+.rf{display:flex;flex-direction:column;gap:8px}
 .yn{display:flex;justify-content:center;gap:88px;margin-top:6px}
 .rb2{width:60px;height:60px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;color:#fff;padding:0}
-.rb2.ok{background:#1e8449}.rb2.no{background:#b42318}
+.rb2.ok{background:#1e8449}.rb2.rj{background:#b42318}
 .ar{position:absolute;border-radius:18px;pointer-events:none}.ar.zp.a1{background:rgba(241,180,187,.42)}.ar.zp.a2{background:rgba(241,180,187,.22)}.ar.zb.a1{background:rgba(31,65,114,.15)}.ar.zb.a2{background:rgba(31,65,114,.08)}
 .al{position:absolute;font-size:11px;font-weight:700;color:var(--mut);pointer-events:none;white-space:nowrap}
 #app.fsm{max-width:none}#app.fsm header,#app.fsm #nv{display:none}#app.fsm .vw{margin:0;border-radius:0;border:0}
@@ -114,6 +116,7 @@ input{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:12
 .bd2{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;background:var(--bd);color:var(--ink)}
 .bd2.on{background:var(--acc);color:var(--onacc)}
 select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 12px;font:16px Inter,system-ui,sans-serif;background:var(--card);color:var(--ink)}
+#mn{display:flex;flex-direction:column;gap:10px}.ch:disabled{opacity:.4;border-style:dashed;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -134,7 +137,7 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 </section>
 <section id="v-beranda" class="vs on"></section>
 <section id="v-setuju" class="vs"></section>
-<section id="v-menu" class="vs"></section>
+<section id="v-menu" class="vs"><div id="mn"></div><div id="trk"><script type='text/javascript' src='https://edge-cdn.trakteer.id/js/trbtn-overlay.min.js?v=14-05-2025'></script><script type='text/javascript' class='troverlay'>(function() {var trbtnId = trbtnOverlay.init('Dukung Aplikasi Family Tree','#1F4172','https://trakteer.id/v1/herandika/tip/embed/modal','https://edge-cdn.trakteer.id/images/embed/trbtn-icon.png?v=14-05-2025','40','inline');trbtnOverlay.draw(trbtnId);})();</script></div></section>
 <nav id="nv" aria-label="Navigasi utama">
 <button class="tb on" data-act="tab" data-id="beranda"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/></svg></span>Home</button>
 <button class="tb" data-act="tab" data-id="pohon"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M12 7.5V12M12 12H6V16.5M12 12H18V16.5"/></svg></span>Pohon</button>
@@ -149,7 +152,7 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const L0=(c,ps,t='biologis')=>ps.map(p=>({c,p,t}));
-const S={role:'owner',focus:'a',sel:null,ui:null,form:null,z:1,x:0,y:0,tog:new Set(),up:0,me:'a',hint:null,fs:false,path:false,anchor:'a',n:0,props:[],log:[],members:['Ahmad Fauzi Rahman (Owner)','Budi Santoso (Admin)','Rina Kartika (Contributor)'],tab:'beranda',tr:null,
+const S={role:'owner',focus:'a',sel:null,ui:null,form:null,z:1,x:0,y:0,tog:new Set(),up:0,me:'a',hist:[],rej:null,rejText:'',hint:null,fs:false,path:false,anchor:'a',n:0,props:[],log:[],members:['Ahmad Fauzi Rahman (Owner)','Budi Santoso (Admin)','Rina Kartika (Contributor)'],tab:'beranda',tr:null,
 people:{a:{n:'Ahmad Fauzi Rahman',y:'1962',c:1,g:'L'},s:{n:'Siti Rohmah Lestari',y:'1965',c:1,g:'P'},k:{n:'Abdul Karim Hasan',y:'1935',w:'1999',c:1,g:'L'},am:{n:'Siti Aminah Yusuf',y:'1940',c:1,g:'P'},h:{n:'Hasan Basri',y:'1905',w:'1975',g:'L'},ik:{n:'Ibu',u:1,g:'P'},y:{n:'Yusuf Ibrahim',y:'1912',w:'1980',g:'L'},f:{n:'Fatimah Zahra',y:'1916',w:'1991',g:'P'},bs:{n:'Basri Ahmad',y:'1878',w:'1950',g:'L'},ib:{n:'Ibrahim Basri',y:'1850',w:'1920',g:'L'},
 nu:{n:'Nurul Hidayati',y:'1957',g:'P'},sl:{n:'Slamet Riyadi',y:'1959',g:'L'},kh:{n:'Siti Khadijah',y:'1964',g:'P'},mu:{n:'Mulyadi Hartono',y:'1967',g:'L'},de:{n:'Dewi Sartika',y:'1969',g:'P'},ba:{n:'Bambang Wijaya',y:'1972',g:'L'},rh:{n:'Rizal Hakim',y:'1970',g:'L'},sw:{n:'Sri Wahyuni',y:'1961',g:'P'},rt:{n:'Ratna Dewi',y:'1968',g:'P'},rz:{n:'Rizky Ramadhan',y:'1992',g:'L'},dn:{n:'Dian Pertiwi',y:'1985',g:'P'},dp:{n:'Doni Saputro',y:'1988',g:'L'},d1:{n:'Dina Maharani',y:'1992',g:'P'},d2:{n:'Dika Pramudya',y:'1995',g:'L'},d3:{n:'Dita Anggraini',y:'1999',g:'P'},
 fa:{n:'Fajar Nugroho',y:'1987',g:'L'},r:{n:'Rina Kartika',y:'1990',c:1,g:'P'},pu:{n:'Putri Anggraini',y:'1992',g:'P'},sa:{n:'Sari Wulandari',y:'1994',g:'P'},he:{n:'Hendra Saputra',y:'1996',g:'L'},d:{n:'Dimas Pratama',y:'1998',g:'L'},jk:{n:'Joko Prasetyo',y:'1988',g:'L'},le:{n:'Lestari Ningsih',y:'1989',g:'P'},ek:{n:'Eko Wahyudi',y:'1992',g:'L'},ai:{n:'Aisyah Zahra',y:'2018',g:'P'},ra:{n:'Raka Mahendra',y:'2020',g:'L'},nf:{n:'Naufal Aditya',y:'2014',g:'L'},kr:{n:'Kirana Aulia',y:'2016',g:'P'},zi:{n:'Zidan Alfarizi',y:'2019',g:'L'},al:{n:'Alesha Putri',y:'2021',g:'P'},mn:{n:'Marni Lestari',y:'1912',g:'P'},rm:{n:'Rahmat Hidayat',y:'1910',g:'L'},sm:{n:'Salma Zahra',y:'1935',g:'P'},by:{n:'Bayu Santoso',y:'1993',g:'L'}},
@@ -192,6 +195,19 @@ const slist=id=>{const r=S.sp.filter(s=>s.a===id||s.b===id).map(s=>esc(P(s.a===i
 const willPend=k=>S.role==='contributor'||k==='parent'||k==='child';
 const LB={parent:'orang tua',spouse:'pasangan',child:'anak'};
 const TY=[['biologis','Biologis'],['adopsi','Adopsi'],['tiri','Orang tua tiri'],['wali','Orang tua wali']];
+const CL={biologis:'Anak kandung',adopsi:'Anak angkat',tiri:'Anak tiri',wali:'Anak asuh'};
+// orang tua kandung maks 2; kalau sudah 2 kandung, adopsi juga mati (tidak mungkin diadopsi); angkat maks 2
+const tyOff=(k,id,t)=>{if(k!=='parent')return false;const n=x=>S.par.filter(l=>l.c===id&&l.t===x).length;return (t==='biologis'&&n('biologis')>=2)||(t==='adopsi'&&(n('biologis')>=1||n('adopsi')>=2));};
+const bioG=of=>{const b=uniq(S.par.filter(l=>l.c===of&&l.t==='biologis').map(l=>l.p));return b.length===1?(P(b[0]).g||''):'';};
+const autoG=(of,t)=>{if(t!=='biologis')return'';const g=bioG(of);return g==='L'?'P':g==='P'?'L':'';};
+const reqG=id=>{for(const l of S.par.filter(l=>l.p===id&&l.t==='biologis')){const o=S.par.find(k=>k.c===l.c&&k.t==='biologis'&&k.p!==id),g=o&&P(o.p).g;if(g==='L'||g==='P')return g==='L'?'P':'L';}return'';};
+const gDis=(f,v)=>(f.k==='parent'&&f.ty==='biologis'&&autoG(f.of,'biologis')&&v!==autoG(f.of,'biologis'))||(f.k==='edit'&&reqG(f.of)&&v!==reqG(f.of));
+const tyNote=f=>f.k!=='parent'?'':[tyOff('parent',f.of,'biologis')&&'Sudah ada 2 orang tua kandung, jadi Biologis tidak tersedia.',tyOff('parent',f.of,'adopsi')&&'Adopsi tidak tersedia kalau sudah ada orang tua kandung atau 2 orang tua angkat.'].filter(Boolean).map(t=>`<div class="m">${t}</div>`).join('');
+// jembatan ∩: garis horizontal melompati garis vertikal yang memotongnya
+const HR=5;
+function segs(d){const o=[];let x=0,y=0;(d.match(/[MLHV][^MLHV]*/g)||[]).forEach(t=>{const c=t[0],n=t.slice(1).trim().split(/[ ,]+/).map(Number);if(c==='M'){x=n[0];y=n[1];o.push(['M',x,y]);return;}let nx=x,ny=y;if(c==='L'){nx=n[0];ny=n[1];}else if(c==='H')nx=n[0];else ny=n[0];o.push(['L',x,y,nx,ny]);x=nx;y=ny;});return o;}
+const hop=(s,ref)=>{const V=[];(ref.match(/ d="[^"]*"/g)||[]).forEach(m=>segs(m.slice(4,-1)).forEach(g=>{if(g[0]==='L'&&g[1]===g[3]&&g[2]!==g[4])V.push([g[1],Math.min(g[2],g[4]),Math.max(g[2],g[4])]);}));
+return s.replace(/ d="([^"]*)"/g,(m,d)=>' d="'+segs(d).map(g=>{if(g[0]==='M')return'M'+g[1]+' '+g[2];const[,x1,y,x2,y2]=g;if(y!==y2||x1===x2)return'L'+x2+' '+y2;const dir=x2>x1?1:-1,lo=Math.min(x1,x2),hi=Math.max(x1,x2);const xs=[...new Set(V.filter(v=>v[0]-HR>lo&&v[0]+HR<hi&&y>v[1]+4&&y<v[2]-4).map(v=>v[0]))].sort((a,b)=>(a-b)*dir);let r='',last=-1e9;xs.forEach(x=>{if(Math.abs(x-last)<2*HR)return;last=x;r+='L'+(x-dir*HR)+' '+y+'A'+HR+' '+HR+' 0 0 '+(dir>0?1:0)+' '+(x+dir*HR)+' '+y;});return r+'L'+x2+' '+y2;}).join('')+'"');};
 const vp=$('#vp');
 // jalur dari fokus ke acuan lewat garis orang tua; puncak jalur = leluhur bersama terdekat
 function pathInfo(x,a){
@@ -205,7 +221,7 @@ return best?{apex:best.c,on:new Set([...best.A,...best.B])}:null;
 function layout(){
 // Pasangan: laki-laki di kiri, perempuan di kanan, pasangan sekarang paling dekat, mantan lebih jauh.
 // Leluhur di atas (bisa ditambah), saudara dan sepupu di samping, anak dikelompokkan per pasangan, anak daun ditumpuk vertikal.
-const W=120,H=64,G=24,GW=72,GP=32,GG=64,V=80,SG=14,SP=16,LV=16,GS=34,pad=24,f=S.focus;
+const W=120,H=64,G=24,GW=72,GP=32,GG=64,V=80,SG=14,SP=16,LV=22,GS=34,pad=24,f=S.focus;
 Object.keys(GH).forEach(k=>delete GH[k]);
 const PI=S.path?pathInfo(f,S.anchor):null,pm=!!PI,isOn=i=>pm&&PI.on.has(i);
 const gr=i=>P(i).g,yr=i=>+P(i).y||9999,rk=i=>gr(i)==='L'?0:gr(i)==='P'?2:1;
@@ -227,7 +243,7 @@ if(open&&bio1){const gid='?'+main;GH[gid]={n:'Pasangan belum diketahui',g:gr(mai
 const left=gr(main)==='P',mem=left?[...sps].reverse().concat(main):[main,...sps],mi=mem.indexOf(main);
 const near=sps[0],exNear=near&&near[0]!=='?'&&(lnk(main,near).t||'menikah')!=='menikah';
 const off=[];let x=0;mem.forEach((q,i)=>{off.push(x);x+=W;if(i<mem.length-1){const a=mem[i],b=mem[i+1];x+=(exNear&&((a===main&&b===near)||(b===main&&a===near)))?GW:G;}});
-const n=sps.length,ext=n>=2?16+(n-2)*LV:0;
+const n=sps.length,ext=n>=2?24+(n-2)*LV:0;
 const anchor=key=>{if(!key)return{ax:off[mi]+W/2,ay:H};const k=sps.indexOf(key)+1,j=left?mi-k:mi+k;
 if(k===1)return{ax:left?(off[j]+W+off[mi])/2:(off[mi]+W+off[j])/2,ay:H/2};
 const jn=left?j+1:j-1;return{ax:left?(off[j]+W+off[jn])/2:(off[jn]+W+off[j])/2,ay:H/2};};
@@ -237,7 +253,7 @@ const key=c=>{if(!open)return'';const ls=S.par.filter(l=>l.c===c),b=ls.filter(l=
 if(b.length&&b.includes(main)){const s=sps.find(q=>q[0]!=='?'&&b.includes(q));if(s)return s;if(b.length===1&&sps.some(q=>q[0]==='?'))return'?'+main;return'';}
 const s=sps.find(q=>q[0]!=='?'&&base.includes(q));return s||'';};
 const kids=uniq(memAll.flatMap(chOf)).filter(c=>own(c));
-return{main,mem,off,mi,uw:x,ext,sps,left,open,anchor,key,kids,real};};
+return{main,mem,off,mi,uw:x,ext,sps,left,open,opened:open&&!dflt(main,row,inF).u,anchor,key,kids,real};};
 const mk=(mains,row,inF)=>{
 const N={row,cl:[],groups:[],inF,by:null};nodes.push(N);
 mains.forEach(m=>{const c=cluster(m,row,inF);c.N=N;N.cl.push(c);});
@@ -307,8 +323,8 @@ return{pos,nodes,roots,gm,areas,cw:Math.max(...ids.map(i=>pos[i].x))+W+pad,ch:Ma
 const sub=p=>p.ghost?'':p.u?'belum diketahui':p.w?(p.y||'?')+' – '+p.w:(p.ap?'±':'')+(p.y||'tahun ?');
 function tree(){
 const L=layout(),{pos,nodes,roots,areas,W,H,V,GS,PI,pm,lvl,frow}=L;let sv='',hl='',cd='',bd='';
-const SP=16,LV=16,cx=i=>pos[i].x+W/2,isOn=i=>pm&&PI.on.has(i),SIc={},si=id=>id in SIc?SIc[id]:(SIc[id]=sibInfo(id));
-const PAT={adopsi:'10 5',tiri:'2 5',wali:'10 4 2 4'};
+const SP=16,LV=22,cx=i=>pos[i].x+W/2,isOn=i=>pm&&PI.on.has(i),SIc={},si=id=>id in SIc?SIc[id]:(SIc[id]=sibInfo(id));
+const PAT={adopsi:'10 5',tiri:'2 5',wali:'10 4 2 4'};let LN2=0;
 const sa=l=>(l&&PAT[l.t]?` stroke-dasharray="${PAT[l.t]}"${l.t==='tiri'?' stroke-linecap="round"':''}`:'')+(l&&l.pend?' class="pd"':'');
 const lt=(k,mem)=>S.par.find(l=>l.c===k&&mem.includes(l.p)&&l.t!=='biologis')||S.par.find(l=>l.c===k&&mem.includes(l.p));
 const nrm=(a,b)=>[-Math.sign(b[1]-a[1]),Math.sign(b[0]-a[0])];
@@ -320,7 +336,7 @@ nodes.forEach(N=>{if(!N.placed)return;N.cl.forEach(c=>{const qm=pos[c.main],rowY
 c.sps.forEach((s,i)=>{const k=i+1,qs=pos[s],ghost=s[0]==='?',link=ghost?{t:'?'}:lnk(c.main,s),t=link.t||'menikah';
 const mE=c.left?qm.x:qm.x+W,sE=c.left?qs.x+W:qs.x;let pts,chx,chy;
 if(k===1){pts=[[mE,mid],[sE,mid]];chx=(mE+sE)/2;chy=mid-26;}
-else{const pv=pos[c.sps[i-1]],pE=c.left?pv.x:pv.x+W,gx=(pE+sE)/2,yy=rowY-8-(k-2)*LV;pts=[[mE,yy],[gx,yy],[gx,mid],[sE,mid]];chx=pv.x+W/2;chy=yy-8;}
+else{const pv=pos[c.sps[i-1]],pE=c.left?pv.x:pv.x+W,gx=(pE+sE)/2,yy=rowY-16-(k-2)*LV;pts=[[mE,yy],[gx,yy],[gx,mid],[sE,mid]];chx=pv.x+W/2;chy=yy-8;}
 sv+=`<path d="${pth(off(pts,3))}${pth(off(pts,-3))}"${ghost?' stroke-dasharray="6 5"':''}${link.pend?' class="pd"':''}/>`;
 if(t==='cerai')cd+=`<span class="lc" style="left:${chx}px;top:${chy}px">✕ Cerai${link.y?' '+link.y:''}</span>`;
 });});});
@@ -329,14 +345,15 @@ nodes.forEach(N=>{if(!N.placed)return;const vis=N.vis;
 vis.forEach((g,gi)=>{const rowY=pos[g.c.main].rowY,ax=N.ul+g.ax,ay=rowY+g.ay,yb=rowY+H+30+(vis.length-1-gi)*GS,mem=[g.c.main,g.key].filter(Boolean);
 if(N.stack){const col=N.cols[gi],sx=N.ul+col.sx,lastN=g.ents[g.ents.length-1].n,lastY=pos[lastN.cl[0].main].rowY+H/2;
 sv+=`<path d="M${ax} ${ay}V${yb}H${sx}V${lastY}"/>`;
-g.ents.forEach(e=>{const cy=pos[e.n.cl[0].main].rowY+H/2,lf=Math.min(...e.n.cl[0].mem.map(i=>pos[i].x));sv+=`<path d="M${sx} ${cy}H${lf}"${sa(lt(e.c,mem))}/>`;if(isOn(e.c)&&isOn(g.c.main))hl+=`<path d="M${ax} ${ay}V${yb}H${sx}V${cy}H${lf}"/>`;});
+g.ents.forEach(e=>{const cy=pos[e.n.cl[0].main].rowY+H/2,lf=Math.min(...e.n.cl[0].mem.map(i=>pos[i].x));sv+=`<path d="M${sx} ${cy}H${lf}"${sa(lt(e.c,mem))}/>`;if((isOn(e.c)&&isOn(g.c.main))||S.sel===e.c||S.sel===g.c.main)hl+=`<path d="M${ax} ${ay}V${yb}H${sx}V${cy}H${lf}"/>`;});
 }else{
 const xs=[ax,...g.ents.map(e=>cx(e.c))];
 sv+=`<path d="M${ax} ${ay}V${yb}M${Math.min(...xs)} ${yb}H${Math.max(...xs)}"/>`;
-g.ents.forEach(e=>{sv+=`<path d="M${cx(e.c)} ${yb}V${pos[e.c].y}"${sa(lt(e.c,mem))}/>`;if(isOn(e.c)&&isOn(g.c.main))hl+=`<path d="M${ax} ${ay}V${yb}H${cx(e.c)}V${pos[e.c].y}"/>`;});}
+g.ents.forEach(e=>{sv+=`<path d="M${cx(e.c)} ${yb}V${pos[e.c].y}"${sa(lt(e.c,mem))}/>`;if((isOn(e.c)&&isOn(g.c.main))||S.sel===e.c||S.sel===g.c.main)hl+=`<path d="M${ax} ${ay}V${yb}H${cx(e.c)}V${pos[e.c].y}"/>`;});}
 cd+=`<button class="tg" data-act="col" data-id="g:${g.c.main}|${g.key}" aria-label="Lipat anak" style="left:${ax}px;top:${yb}px">−</button>`;
 });
 N.cl.forEach(c=>{const q=pos[c.main];
+if(c.opened)cd+=`<button class="tg2" data-act="col" data-id="u:${c.main}" aria-label="Sembunyikan pasangan dan anak" style="left:${q.x+W-2}px;top:${q.y+2}px">−</button>`;
 if(!c.open){const gg=N.groups.filter(g=>g.c===c),tot=c.kids.length,ko=gg.some(g=>g.open),parts=[c.real.length?'pasangan':'',!ko&&tot?tot+' anak':''].filter(Boolean),txt='▸ '+parts.join(' & '),w=Math.max(88,txt.length*6.6+24);
 if(parts.length)cd+=`<button class="col" data-act="col" data-id="u:${c.main}" style="left:${cx(c.main)-w/2}px;top:${q.rowY+H+8}px;width:${w}px">${txt}</button>`;}
 else N.groups.filter(g=>g.c===c&&!g.open).forEach(g=>{const ax=N.ul+g.ax;cd+=`<button class="col" data-act="col" data-id="g:${c.main}|${g.key}" aria-label="${g.total} anak" style="left:${ax-44}px;top:${q.rowY+H+8}px">▸ ${g.total} anak</button>`;});
@@ -347,16 +364,19 @@ Object.keys(pos).forEach(c=>{const gmm=L.gm[c];if(!gmm)return;const by={};
 S.par.filter(l=>l.c===c&&l.t!=='biologis'&&pos[l.p]&&!gmm.includes(l.p)).forEach(l=>{(by[l.t]=by[l.t]||[]).push(l.p);});
 Object.entries(by).forEach(([t,ps],ti)=>{const q=pos[c],a=pos[ps[0]],b=ps[1]&&pos[ps[1]];let ax,ay;
 if(b&&lnk(ps[0],ps[1])&&a.rowY===b.rowY){const l1=a.x<b.x?a:b,r1=a.x<b.x?b:a;ax=(l1.x+W+r1.x)/2;ay=a.rowY+H/2;}else{ax=cx(ps[0]);ay=a.rowY+H;}
-const yc=q.y-20-ti*8,xc=cx(c)+22;sv+=`<path d="M${ax} ${ay}V${yc}H${xc}V${q.y}" stroke-dasharray="${PAT[t]||'6 4'}"${t==='tiri'?' stroke-linecap="round"':''}/>`;});});
+const yc=q.y-10-(LN2++%4)*8,xc=cx(c)+22;sv+=`<path d="M${ax} ${ay}V${yc}H${xc}V${q.y}" stroke-dasharray="${PAT[t]||'6 4'}"${t==='tiri'?' stroke-linecap="round"':''}/>`;});});
 // tombol tambah leluhur ke atas
 if(!pm){roots.forEach(r=>r.cl.forEach(c=>{c.mem.filter(i=>i[0]!=='?'&&pp(i).length).forEach(i=>{const q=pos[i];cd+=`<button class="col" data-act="up" data-id="1" aria-label="Tambah leluhur" style="left:${cx(i)-52}px;top:${q.y-44}px;width:104px">▴ leluhur</button>`;});}));
 if(S.up>0)cd+=`<button class="col" data-act="up" data-id="-1" aria-label="Kurangi leluhur" style="left:24px;top:6px;width:104px">▾ tutup</button>`;}
 const ptag={};S.par.filter(l=>l.c===S.focus&&l.t!=='biologis').forEach(l=>{ptag[l.p]={adopsi:'Ortu angkat',tiri:'Ortu tiri',wali:'Ortu wali'}[l.t];});
 Object.entries(pos).forEach(([id,q])=>{const p=P(id),rl=S.par.find(l=>l.c===id&&l.t!=='biologis'),isA=pm&&id===S.anchor,pth2=pm&&isOn(id)&&!isA;
-let top='';if(isA)top='Acuan';else if(pth2){const d=lvl[id]-lvl[S.anchor];top=d<0?`${-d} gen. di atas`:d>0?`${d} gen. di bawah`:'Segenerasi';}
+const KA={biologis:'kandung',adopsi:'angkat',tiri:'tiri',wali:'asuh'},KP={biologis:'kandung',adopsi:'angkat',tiri:'tiri',wali:'wali'};
+let top='';if(S.sel&&!pm){const own=S.par.find(l=>l.c===S.sel&&l.p===id),kid=S.par.filter(l=>l.c===id&&l.p===S.sel)[0];if(id===S.sel){const ls=S.par.filter(l=>l.c===id);if(ls.length)top='Anak '+KA[(ls.find(l=>l.t!=='biologis')||ls[0]).t];}else if(kid)top='Anak '+KA[kid.t];else if(own)top='Ortu '+KP[own.t];}
+if(isA)top='Acuan';else if(pth2){const d=lvl[id]-lvl[S.anchor];top=d<0?`${-d} gen. di atas`:d>0?`${d} gen. di bawah`:'Segenerasi';}
 const cl=['card',id===S.focus&&'f',p.pend&&'p',p.u&&'u',p.ghost&&'gh',id===S.sel&&'sel',isA&&'ank',pth2&&'pth',S.hint&&S.hint.has(id)&&'hint'].filter(Boolean).join(' ');
-const sb=p.ghost?null:si(id),tg=[rl&&(TG[rl.t]||rl.t),ptag[id]].filter(Boolean).join(', ');
+const sb=p.ghost?null:si(id),tg=[rl&&id!==S.focus&&(TG[rl.t]||rl.t),ptag[id]].filter(Boolean).join(', ');
 cd+=`<button class="${cl}" data-act="sel" data-id="${id}" style="left:${q.x}px;top:${q.y}px;height:${q.h}px"><span>${esc(p.n)}</span><small>${p.ghost?'':p.g==='L'?'<b class="sx m" aria-label="Laki-laki">♂</b> ':p.g==='P'?'<b class="sx f" aria-label="Perempuan">♀</b> ':''}${p.pend?'Menunggu':sub(p)}</small>${sb?`<em class="no" title="Anak ke-${sb.n} dari ${sb.N}">${sb.n}</em>`:''}${top?`<em class="tag">${top}</em>`:''}${tg?`<em class="tag bt">${tg}</em>`:''}</button>`;});
+sv=hop(sv,sv);hl=hop(hl,sv);
 const stg=$('#stage');stg.style.cssText=`width:${L.cw}px;height:${L.ch}px;transform:translate(${S.x}px,${S.y}px) scale(${S.z});transform-origin:0 0`;
 stg.innerHTML=bd+`<svg width="${L.cw}" height="${L.ch}" aria-hidden="true">${sv}<g class="hl">${hl}</g></svg>`+cd;
 const lg=$('#lg2');if(lg){lg.className=pm?'lg2 o':'lg2';if(pm)lg.innerHTML=`Acuan: <b>${esc(P(S.anchor).n)}</b><br><span class="sw ank"></span>Acuan<span class="sw pth"></span>Jalur<span class="sw f"></span>Fokus`;}
@@ -377,6 +397,7 @@ if(PT.size===1){if(mv>6){S.x+=e.clientX-o[0];S.y+=e.clientY-o[1];ap();}}
 else if(PT.size===2){const[a,b]=[...PT.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),r=vp.getBoundingClientRect();if(pd)zm(S.z*d/pd,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);pd=d;}});
 ['pointerup','pointercancel','pointerleave'].forEach(t=>vp.addEventListener(t,e=>{PT.delete(e.pointerId);pd=0;}));
 vp.addEventListener('wheel',e=>{e.preventDefault();const r=vp.getBoundingClientRect();zm(S.z*(e.deltaY<0?1.1:.9),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+document.addEventListener('input',e=>{if(e.target.id==='rr')S.rejText=e.target.value;if(e.target.id==='tq'){S.tq=e.target.value;$('#tl').innerHTML=tlist();}});
 // cegah zoom halaman di iOS Safari (yang mengabaikan user-scalable=no)
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
 let tm,hT;function toast(t){const e=$('#tt');e.textContent=t;e.className='o';clearTimeout(tm);tm=setTimeout(()=>e.className='',2200);}
@@ -386,35 +407,45 @@ function shPerson(){const id=S.sel,p=P(id),o=S.role==='owner',sb=sibInfo(id);
 const st=p.pend?'Menunggu persetujuan':p.u?'Belum diketahui':p.c?'Sudah dikonfirmasi keluarga':'Belum diverifikasi';
 return `<div class="rw"><div><div class="t">${esc(p.n)}</div><div class="m">Lahir ${p.u?'?':(p.ap?'sekitar ':'')+(p.y||'?')}${p.w?' · Wafat '+p.w:''} · ${st} · ${p.g==='L'?'Laki-laki':p.g==='P'?'Perempuan':'jenis kelamin belum diisi'}</div></div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>
 ${sb?`<div class="m"><b>Anak ke-${sb.n} dari ${sb.N}</b> (urut tahun lahir)</div>`:''}<div class="m"><b>Orang tua:</b> ${plist(id)}<br><b>Pasangan:</b> ${slist(id)}${kidsHtml(id)}</div>
-<div class="g2"><button class="b" data-act="focus">Jadikan fokus</button><button class="b o2" data-act="edit">${o?'Ubah data':'Ajukan perubahan'}</button></div>
-<div class="g2"><button class="b o2" data-act="trace">Telusuri hubungan</button><button class="b o2" data-act="anchor">Jadikan acuan</button></div>
+<div class="g2"><button class="b" data-act="focus">Jadikan fokus</button><button class="b o2" data-act="anchor">Jadikan acuan</button></div>
+<div class="g2"><button class="b o2" data-act="edit">${o?'Ubah data':'Ajukan perubahan'}</button><button class="b o2" data-act="trace">Telusuri hubungan</button></div>
 <div class="h">Tambah relasi</div>
 <div class="g3"><button class="b o2" data-act="add" data-id="parent">+ Orang tua</button><button class="b o2" data-act="add" data-id="spouse">+ Pasangan</button><button class="b o2" data-act="add" data-id="child">+ Anak</button></div>
-<div class="m">${o?'Pasangan langsung tersimpan. Orang tua dan anak menunggu persetujuan Owner atau Admin lain.':'Sebagai Contributor, semua perubahan berupa pengajuan.'}</div>`;}
+<div class="m">${o?'Pasangan langsung tersimpan. Orang tua dan anak menunggu persetujuan Owner atau Admin lain.':'Sebagai Contributor, semua perubahan berupa pengajuan.'}</div>
+<button class="b o2" data-act="del" style="color:#b42318;border-color:#b42318">${S.role==='contributor'?'Ajukan hapus orang ini':'Hapus orang ini'}</button>`;}
 function shForm(){const f=S.form,p=P(f.of),e=f.k==='edit',pd=e?S.role==='contributor':willPend(f.k);
 return `<div class="rw"><div class="t">${e?(S.role==='owner'?'Ubah data ':'Ajukan perubahan ')+esc(p.n):'Tambah '+LB[f.k]+' untuk '+esc(p.n)}</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>
-<label for="fn">Nama utama</label><input id="fn" value="${esc(f.name)}" autocomplete="off">
-<label>Jenis kelamin (opsional)</label><div class="cr">${[['L','Laki-laki'],['P','Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(f.g||'')===v?' on':''}" data-act="gd" data-id="${v}" aria-pressed="${(f.g||'')===v}">${l}</button>`).join('')}</div><div class="m">Hanya dipakai untuk urutan pasangan di pohon.</div>
+${f.kids&&f.kids.length>1?`<div class="m">Berlaku untuk ${f.kids.length} anak: ${f.kids.map(k=>esc(P(k).n)).join(', ')}</div>`:''}<label for="fn">Nama utama</label><input id="fn" value="${esc(f.name)}" autocomplete="off">
+<label>Jenis kelamin (opsional)</label><div class="cr">${[['L','Laki-laki'],['P','Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(f.g||'')===v?' on':''}" data-act="gd" data-id="${v}" aria-pressed="${(f.g||'')===v}"${gDis(f,v)?' disabled':''}>${l}</button>`).join('')}</div><div class="m">Hanya dipakai untuk urutan pasangan di pohon.${f.k==='parent'&&f.ty==='biologis'&&bioG(f.of)?' Orang tua kandung kedua harus lawan jenis dari yang pertama.':''}${f.k==='edit'&&reqG(f.of)?' Terkunci: orang ini orang tua kandung, jadi harus lawan jenis dari orang tua kandung lain pada anaknya.':''}</div>
 ${f.k==='spouse'?`<label>Status hubungan</label><div class="cr">${[['menikah','Menikah'],['cerai','Cerai']].map(([v,l])=>`<button class="ch${f.ss===v?' on':''}" data-act="ss" data-id="${v}" aria-pressed="${f.ss===v}">${l}</button>`).join('')}</div>`:''}
 <label for="fy">Tahun lahir (opsional)</label><div class="rw"><input id="fy" inputmode="numeric" value="${esc(f.year)}"><button class="ch${f.ap?' on':''}" data-act="apx" aria-pressed="${!!f.ap}">Perkiraan</button></div>
 <label for="fw">Tahun wafat (opsional, kosongkan jika masih hidup)</label><input id="fw" inputmode="numeric" value="${esc(f.dyear||'')}">
-${f.k==='parent'||f.k==='child'?`<label>Jenis hubungan</label><div class="cr">${TY.map(([v,l])=>`<button class="ch${f.ty===v?' on':''}" data-act="ty" data-id="${v}" aria-pressed="${f.ty===v}">${l}</button>`).join('')}</div>`:''}
+${f.k==='parent'||f.k==='child'?`<label>Jenis hubungan</label><div class="cr">${TY.map(([v,l])=>`<button class="ch${f.ty===v?' on':''}" data-act="ty" data-id="${v}" aria-pressed="${f.ty===v}"${tyOff(f.k,f.of,v)?' disabled':''}>${f.k==='child'?CL[v]:l}</button>`).join('')}</div>${tyNote(f)}`:''}
 ${e?`<label>Status</label><div class="cr"><button class="ch${f.c?'':' on'}" data-act="st" data-id="0">Belum diverifikasi</button><button class="ch${f.c?' on':''}" data-act="st" data-id="1">Sudah dikonfirmasi</button></div>`:''}
 ${f.dup?`<div class="warn">Sudah ada profil bernama <b>${esc(P(f.dup).n)}</b>. Pakai profil itu?<div class="g2"><button class="b" data-act="use">Pakai yang ada</button><button class="b o2" data-act="skip">Tetap buat baru</button></div></div>`:''}
 <div class="m">${pd?'Masuk daftar persetujuan Owner atau Admin lain.':'Langsung tersimpan.'}</div>
+${f.warn?`<div class="warn"><b>Periksa dulu:</b> ${f.warn.map(esc).join(' ')}<div class="g2"><button class="b" data-act="okw">Tetap simpan</button><button class="b o2" data-act="nw">Perbaiki</button></div></div>`:''}
 <div class="g2"><button class="b" data-act="save">${pd?'Ajukan':'Simpan'}</button><button class="b o2" data-act="close">Batal</button></div>`;}
 const IC=d=>`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
-const pcard=p=>`<div class="c"><div><span class="bd2${p.kind==='join'?'':' on'}">${p.kind==='join'?'Akses: jadi Contributor':'Ubah pohon'}</span></div><div>${esc(p.t)}</div>${p.at?`<button class="b o2" data-act="loc" data-id="${p.id}">Lihat posisi di pohon</button>`:''}<div class="yn"><button class="rb2 no" data-act="no" data-id="${p.id}" aria-label="Tolak" title="Tolak">${IC('M6 6l12 12M18 6L6 18')}</button><button class="rb2 ok" data-act="ok" data-id="${p.id}" aria-label="Setujui" title="Setujui">${IC('M5 12l5 5L20 7')}</button></div></div>`;
+const rform=p=>`<div class="rf"><label for="rr">Alasan penolakan (wajib, maks 300 karakter)</label><div class="cr">${['Data salah','Duplikat','Belum yakin'].map(t=>`<button class="ch" data-act="rq" data-id="${t}">${t}</button>`).join('')}</div><input id="rr" maxlength="300" value="${esc(S.rejText||'')}" autocomplete="off"><div class="g2"><button class="b" data-act="rsend" data-id="${p.id}">Kirim penolakan</button><button class="b o2" data-act="rcancel">Batal</button></div></div>`;
+const pcard=p=>`<div class="c"><div><span class="bd2${p.kind==='join'?'':' on'}">${p.kind==='join'?'Akses: jadi Contributor':'Ubah pohon'}</span></div><div>${esc(p.t)}</div>${p.at?`<button class="b o2" data-act="loc" data-id="${p.id}">Lihat posisi di pohon</button>`:''}${S.rej===p.id?rform(p):`<div class="yn"><button class="rb2 rj" data-act="no" data-id="${p.id}" aria-label="Tolak" title="Tolak">${IC('M6 6l12 12M18 6L6 18')}</button><button class="rb2 ok" data-act="ok" data-id="${p.id}" aria-label="Setujui" title="Setujui">${IC('M5 12l5 5L20 7')}</button></div>`}</div>`;
+const hlist=()=>S.hist.length?`<div class="h">Riwayat (${S.hist.length})</div>`+S.hist.slice().reverse().map(x=>`<div class="c"><div><span class="bd2${x.yes?' on':''}">${x.yes?'Disetujui':'Ditolak'}</span> <span class="bd2">${x.kind==='join'?'Akses':'Ubah pohon'}</span></div><div>${esc(x.t)}</div>${x.reason?`<div class="m"><b>Alasan (terlihat oleh pengaju):</b> ${esc(x.reason)}</div>`:''}</div>`).join(''):'';
 const pgrp=(t,k)=>{const a=S.props.filter(p=>p.kind===k);return a.length?`<div class="h">${t} (${a.length})</div>`+a.map(pcard).join(''):'';};
-const plist2=()=>S.props.length?pgrp('Perubahan pohon','tree')+pgrp('Permintaan akses','join'):'<div class="c">Tidak ada pengajuan.</div>';
+const plist2=()=>(S.props.length?pgrp('Perubahan pohon','tree')+pgrp('Permintaan akses','join'):'<div class="c">Tidak ada pengajuan.</div>')+hlist();
 function shPend(){return `<div class="rw"><div class="t">Menunggu persetujuan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+plist2()+'<div class="m">Simulasi: di produk asli yang menyetujui adalah Owner atau Admin lain, bukan pengaju.</div>';}
-function sheet(){const sh=$('#sh');if(!S.ui){sh.className='';sh.innerHTML='';return;}sh.className='o';sh.innerHTML=S.ui==='person'?shPerson():S.ui==='form'?shForm():S.ui==='trace'?shTrace():shPend();}
+function sheet(){const sh=$('#sh');if(!S.ui){sh.className='';sh.innerHTML='';return;}sh.className='o';sh.innerHTML=S.ui==='person'?shPerson():S.ui==='form'?shForm():S.ui==='trace'?shTrace():S.ui==='del'?shDel():shPend();}
 const prop=(t,ok,no,at,kind)=>S.props.push({id:++S.n,t,ok,no,at,kind:kind||'tree'});
 function sync(){const f=S.form;if(!f)return;const a=$('#fn'),b=$('#fy'),c=$('#fw');if(a)f.name=a.value;if(b)f.year=b.value;if(c)f.dyear=c.value;}
 function done(){S.ui=null;S.sel=null;S.form=null;}
 function save(){sync();const f=S.form,name=f.name.trim();
 if(!name){toast('Nama utama wajib diisi');return;}
 f.name=name;
+{const wn=[],y=+f.year,w=+f.dyear;
+if(f.year&&f.dyear&&w<y)wn.push('Tahun wafat sebelum tahun lahir.');
+if(f.year&&((f.dyear&&w-y>120)||(!f.dyear&&2026-y>120)))wn.push('Usia di atas 120 tahun.');
+if(f.k==='parent'&&f.year&&P(f.of).y&&y>+P(f.of).y)wn.push('Orang tua lebih muda dari anaknya.');
+if(f.k==='child'&&f.year&&P(f.of).y&&y<+P(f.of).y)wn.push('Anak lebih tua dari orang tuanya.');
+if(wn.length&&!f.okw){f.warn=wn;sheet();return;}}
 if(f.k==='edit'){const id=f.of,ch={n:name,y:f.year.trim(),ap:f.ap,c:f.c?1:0,g:f.g||'',w:(f.dyear||'').trim()};
 if(S.role==='owner'){Object.assign(P(id),ch);lg('Ubah data: '+name);toast('Perubahan tersimpan');}
 else{prop('Ubah data '+P(id).n+' menjadi '+name,()=>Object.assign(P(id),ch),()=>{},[id]);toast('Diajukan, menunggu persetujuan');}
@@ -426,9 +457,11 @@ function commit(id,isNew){const f=S.form,pd=willPend(f.k),X=f.of,sp=f.k==='spous
 if(isNew)S.people[id]={n:f.name,y:f.year.trim(),ap:f.ap,g:f.g||'',w:(f.dyear||'').trim(),pend:pd};
 const L=sp?{a:X,b:id,t:f.ss||'menikah',pend:pd}:{c:f.k==='parent'?X:id,p:f.k==='parent'?id:X,t:f.ty,pend:pd},arr=sp?S.sp:S.par;
 arr.push(L);
-if(pd)prop('Tambah '+LB[f.k]+': '+P(id).n,()=>{L.pend=false;if(isNew)P(id).pend=false;},()=>{arr.splice(arr.indexOf(L),1);if(isNew)delete S.people[id];},[X,id]);
+const ex=[];if(f.k==='parent'&&f.ty==='biologis')(f.kids||[X]).forEach((k,i)=>{if(i)ex.push([S.par,{c:k,p:id,t:'biologis',pend:pd}]);S.par.filter(l=>l.c===k&&l.t==='biologis'&&l.p!==id).forEach(l=>{if(!lnk(l.p,id)&&!ex.some(e=>e[0]===S.sp&&e[1].a===l.p))ex.push([S.sp,{a:l.p,b:id,t:'menikah',pend:pd}]);});});
+ex.forEach(([a,o])=>a.push(o));
+if(pd)prop('Tambah '+LB[f.k]+': '+P(id).n,()=>{L.pend=false;ex.forEach(([,o])=>o.pend=false);if(isNew)P(id).pend=false;},()=>{arr.splice(arr.indexOf(L),1);ex.forEach(([a,o])=>a.splice(a.indexOf(o),1));if(isNew)delete S.people[id];},[X,id]);
 lg((pd?'Ajukan ':'Tambah ')+LB[f.k]+': '+P(id).n);S.focus=X;done();ctr(tree());sheet();hdr();toast(pd?'Diajukan, menunggu persetujuan':'Tersimpan');}
-function resolve(id,yes){const i=S.props.findIndex(p=>p.id===id);if(i<0)return;const p=S.props.splice(i,1)[0];lg((yes?'Setujui: ':'Tolak: ')+p.t);(yes?p.ok:p.no)();if(!P(S.focus))S.focus='a';tree();hdr();sheet();toast(yes?'Disetujui (simulasi)':'Ditolak');}
+function resolve(id,yes,reason){const i=S.props.findIndex(p=>p.id===id);if(i<0)return;const p=S.props.splice(i,1)[0];S.hist.push({t:p.t,kind:p.kind,yes,reason:reason||''});S.rej=null;S.rejText='';lg((yes?'Setujui: ':'Tolak: ')+p.t+(reason?' (alasan: '+reason+')':''));(yes?p.ok:p.no)();if(!P(S.focus))S.focus='a';tree();hdr();sheet();toast(yes?'Disetujui (simulasi)':'Ditolak');}
 const lg=t=>S.log.push((S.role==='owner'?'Owner':'Contributor')+': '+t);
 function views(){
 const n=S.props.length,o=S.role==='owner',hd=t=>`<div class="t" style="font-size:22px">${t}</div>`;
@@ -439,7 +472,7 @@ $('#v-beranda').innerHTML=`<div class="rw" style="justify-content:flex-start;gap
 <div class="tc" style="border-style:dashed"><div class="rw"><b class="t">Keluarga Hasan</b><span class="bd2">Menunggu</span></div><div class="m">Permintaan bergabung menunggu persetujuan Admin. Isi pohon belum bisa dilihat.</div></div>
 <div class="g2" style="margin-top:auto"><button class="b" data-act="soon">Buat pohon baru</button><button class="b o2" data-act="soon">Gabung undangan</button></div>`;
 $('#v-setuju').innerHTML=hd('Approval')+'<div class="m">Perubahan yang Anda ajukan sendiri perlu disetujui Owner atau Admin lain.</div>'+plist2()+'<div class="m">Simulasi: di produk asli yang menyetujui adalah Owner atau Admin lain.</div>';
-$('#v-menu').innerHTML=hd('Menu')+`<div class="h">Anggota dan akses</div><div class="c">${S.members.map(esc).join('<br>')}</div>
+$('#mn').innerHTML=hd('Menu')+`<div class="h">Anggota dan akses</div><div class="c">${S.members.map(esc).join('<br>')}</div>
 <div class="h">Audit log</div><div class="c">${o?(S.log.length?S.log.slice(-8).reverse().map(esc).join('<br>'):'Belum ada aktivitas. Coba edit pohon.'):'Hanya Owner dan Admin yang bisa melihat audit log.'}</div>
 <div class="h">Backup dan ekspor</div><div class="c">Google Drive terhubung, backup harian terenkripsi<button class="b o2" data-act="soon">Ekspor JSON</button></div>
 <div class="h">Akun</div><div class="c">Bahasa: Indonesia · MFA: aktif</div>`;
@@ -455,20 +488,26 @@ const path=[];for(let x=b;prev[x];x=prev[x][0])path.unshift(prev[x]);
 let h=`<div class="h">Jalur utama · ${path.length} langkah</div><div class="c"><b>${esc(P(a).n)}</b>`;
 path.forEach(([x,e])=>{h+=`<div class="m">${e[3]?'┄':'│'} ${e[2]}</div><b>${esc(P(e[1]).n)}</b>`;});
 return h+'</div><div class="m">Langkah paling sedikit bukan berarti hubungan darah terdekat. ┄ berarti angkat, tiri, atau wali. Jalur setara lain belum ditampilkan di prototipe.</div>';}
-function shTrace(){const a=S.sel,o=Object.keys(S.people).filter(i=>i!==a&&!P(i).pend).map(i=>`<option value="${i}"${S.tr===i?' selected':''}>${esc(P(i).n)}</option>`).join('');
-return `<div class="rw"><div class="t">Telusuri hubungan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div><label for="tg">Dari <b>${esc(P(a).n)}</b> ke</label><select id="tg">${o}</select><button class="b" data-act="tgo">Telusuri</button>${S.tr?tracePath(a,S.tr)+'<button class="b o2" data-act="tshow">Tampilkan jalur di pohon</button>':''}`;}
+const ipf=(a,f)=>{for(let i=a.length;i--;)if(!f(a[i]))a.splice(i,1);};
+const rmP=id=>{ipf(S.par,l=>l.c!==id&&l.p!==id);ipf(S.sp,x=>x.a!==id&&x.b!==id);ipf(S.props,q=>!(q.at&&q.at.includes(id)));delete S.people[id];if(S.focus===id)S.focus=S.me;if(S.anchor===id)S.anchor=S.me;S.path=false;};
+const delPd=id=>S.role==='contributor'||(!P(id).pend&&S.par.some(l=>l.c===id));
+function shDel(){const id=S.sel,p=P(id),ks=chOf(id),pd=delPd(id),bl=id===S.me?'Ini profil pemilik akun, tidak bisa dihapus.':ks.length?`Punya ${ks.length} anak (${nm(ks)}). Hapus atau ubah relasi anak lebih dulu supaya pohon tidak terputus.`:'';
+return `<div class="rw"><div class="t">Hapus ${esc(p.n)}?</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+(bl?`<div class="warn">${bl}</div><button class="b o2" data-act="back">Kembali</button>`:`<div class="m">Hubungan pasangan dan orang tua ${esc(p.n)} ikut terhapus. ${p.pend?'Ini sama dengan membatalkan pengajuannya.':pd?'Masuk daftar persetujuan Owner atau Admin lain.':'Langsung terhapus dan tercatat.'}</div><div class="g2"><button class="b" data-act="delok">${pd?'Ajukan hapus':'Ya, hapus'}</button><button class="b o2" data-act="back">Batal</button></div>`);}
+const tlist=()=>{const q=(S.tq||'').trim().toLowerCase(),a=S.sel,r=Object.keys(S.people).filter(i=>i!==a&&!P(i).pend&&P(i).n.toLowerCase().includes(q)).sort((x,y)=>P(x).n.localeCompare(P(y).n,'id'));return r.length?r.map(i=>`<button class="ex" data-act="tpick" data-id="${i}">${esc(P(i).n)}<small>${P(i).y||'tahun ?'}</small></button>`).join(''):'<div class="m" style="padding:8px">Tidak ada hasil.</div>';};
+function shTrace(){const a=S.sel;
+return `<div class="rw"><div class="t">Telusuri hubungan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+(S.tr?`<div class="rw"><div class="m">Dari <b>${esc(P(a).n)}</b> ke <b>${esc(P(S.tr).n)}</b></div><button class="ch" data-act="tchg">Ganti</button></div>`+tracePath(a,S.tr)+'<button class="b o2" data-act="tshow">Tampilkan jalur di pohon</button>':`<label for="tq">Dari <b>${esc(P(a).n)}</b> ke (cari nama, urut A–Z)</label><input id="tq" type="search" autocomplete="off" value="${esc(S.tq||'')}"><div id="tl" class="c" style="padding:4px;max-height:260px;overflow:auto">${tlist()}</div>`);}
 $('#app').addEventListener('click',e=>{
 if(mv>6&&e.target.closest('#vp')){mv=0;return;}
 const el=e.target.closest('[data-act]');if(!el)return;
 const a=el.dataset.act,id=el.dataset.id,f=S.form;
 switch(a){
-case'sel':if(id[0]==='?'){toast('Pasangan belum diketahui. Pilih orang di sebelahnya, lalu Tambah pasangan.');break;}S.sel=id;S.ui='person';S.form=null;tree();sheet();break;
+case'sel':if(id[0]==='?'){const m=id.slice(1),ks=chOf(m).filter(c=>{const b=S.par.filter(l=>l.c===c&&l.t==='biologis').map(l=>l.p);return b.length===1&&b[0]===m;});if(!ks.length)break;S.sel=ks[0];S.form={k:'parent',of:ks[0],kids:ks,name:'',year:'',ap:false,ty:'biologis',g:autoG(ks[0],'biologis'),ss:'menikah',dyear:''};S.ui='form';tree();sheet();break;}S.sel=id;S.ui='person';S.form=null;tree();sheet();break;
 case'close':done();tree();sheet();break;
 case'focus':S.focus=S.sel;if(S.path&&(S.focus===S.anchor||!pathInfo(S.focus,S.anchor))){S.path=false;toast('Jalur dimatikan: fokus tidak punya jalur keturunan ke acuan');}done();ctr(tree());sheet();break;
-case'edit':{const p=P(S.sel);S.form={k:'edit',of:S.sel,name:p.n,year:p.y||'',ap:!!p.ap,c:!!p.c,g:p.g||'',dyear:p.w||''};S.ui='form';sheet();break;}
-case'add':S.form={k:id,of:S.sel,name:'',year:'',ap:false,ty:'biologis',g:'',ss:'menikah',dyear:''};S.ui='form';sheet();break;
+case'edit':{const p=P(S.sel);S.form={k:'edit',of:S.sel,name:p.n,year:p.y||'',ap:!!p.ap,c:!!p.c,g:reqG(S.sel)||p.g||'',dyear:p.w||''};S.ui='form';sheet();break;}
+case'add':{const ty=(TY.find(([v])=>!tyOff(id,S.sel,v))||TY[0])[0];S.form={k:id,of:S.sel,name:'',year:'',ap:false,ty,g:id==='parent'?autoG(S.sel,ty):'',ss:'menikah',dyear:''};S.ui='form';sheet();break;}
 case'apx':sync();f.ap=!f.ap;sheet();break;
-case'ty':sync();f.ty=id;sheet();break;
+case'ty':sync();f.ty=id;if(f.k==='parent'){const ag=autoG(f.of,id);if(ag)f.g=ag;}sheet();break;
 case'st':sync();f.c=id==='1';sheet();break;
 case'save':save();break;
 case'use':commit(f.dup,false);break;
@@ -476,9 +515,15 @@ case'skip':f.skip=true;save();break;
 case'pend':tab('setuju');break;
 case'tab':tab(id);break;
 case'soon':toast('Belum tersedia di prototipe');break;
-case'trace':S.ui='trace';S.tr=null;sheet();break;
-case'tgo':S.tr=$('#tg').value;sheet();break;
-case'ok':case'no':resolve(+id,a==='ok');break;
+case'trace':S.ui='trace';S.tr=null;S.tq='';sheet();break;
+case'del':S.ui='del';sheet();break;case'back':S.ui='person';sheet();break;case'delok':{const id=S.sel,p=P(id),pd=delPd(id);if(id===S.me||chOf(id).length)break;if(pd){prop('Hapus orang: '+p.n,()=>rmP(id),()=>{},[id]);lg('Ajukan hapus: '+p.n);done();tree();sheet();hdr();toast('Diajukan, menunggu persetujuan');}else{lg('Hapus orang: '+p.n);rmP(id);done();ctr(tree());sheet();hdr();toast('Orang dihapus');}break;}case'tpick':S.tr=id;sheet();break;case'tchg':S.tr=null;sheet();break;
+case'ok':resolve(+id,true);break;
+case'no':S.rej=+id;S.rejText='';hdr();sheet();break;
+case'rq':S.rejText=id;hdr();break;
+case'rsend':{const t=(S.rejText||'').trim();if(!t){toast('Alasan wajib diisi');break;}resolve(+id,false,t);break;}
+case'rcancel':S.rej=null;hdr();break;
+case'okw':sync();f.okw=true;save();break;
+case'nw':f.warn=null;sheet();break;
 case'role':S.role=id;hdr();sheet();break;
 case'col':{const pid=id.slice(2).split('|')[0],o=layout().pos[pid];if(S.tog.has(id))S.tog.delete(id);else S.tog.add(id);const L=tree(),n=L.pos[pid];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}break;}
 case'up':{const o=layout().pos[S.focus];S.up=Math.max(0,S.up+(+id));const L=tree(),n=L.pos[S.focus];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}break;}
