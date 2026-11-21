@@ -1,3 +1,5 @@
+import { handleAuth } from './auth.js';
+
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -16,6 +18,9 @@ export default {
         return json({ ok: false, error: 'DB_BELUM_SIAP', hint: 'Jalankan migrations/0001_init.sql di D1 Console' }, 500);
       }
     }
+
+    const auth = await handleAuth(request, env);
+    if (auth) return auth;
 
     return json({ error: 'not_found' }, 404);
   },

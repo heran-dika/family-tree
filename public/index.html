@@ -121,7 +121,7 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 html[data-big="1"] #v-pohon header .m{display:none}
 #v-menu{padding:0;overflow:hidden;gap:0}#mn{flex:1;min-height:0;overflow:auto;padding:12px 16px}#trk{flex:none;display:flex;justify-content:center;padding:8px 16px 10px;background:var(--bg)}input[type=range]{border:0;padding:0;accent-color:var(--acc)}
 .ch.on .sx{color:inherit}
-#stage svg,#stage .ar,#stage .tg,#stage .tg2,#stage .col,#stage .lc{transition:opacity .3s ease .15s}#stage.gl svg,#stage.gl .ar,#stage.gl .tg,#stage.gl .tg2,#stage.gl .col,#stage.gl .lc{opacity:0}
+#stage svg,#stage .tg,#stage .tg2,#stage .col,#stage .lc{transition:opacity .3s ease .15s}#stage.gl svg,#stage.gl .tg,#stage.gl .tg2,#stage.gl .col,#stage.gl .lc{opacity:0}
 </style>
 </head>
 <body>
@@ -192,9 +192,7 @@ chOf('h').filter(c=>parOf(c).includes('mn')).forEach(i=>fill(i,3));
 chOf('h').filter(c=>c!=='k'&&parOf(c).includes('ik')).slice(0,2).forEach(i=>fill(i,3));
 chOf('y').filter(c=>c!=='am'&&parOf(c).includes('f')).slice(0,2).forEach(i=>fill(i,3));
 fill('sm',3);
-Object.assign(S.people,{bd:{n:'Budi Saputra',y:'1960',g:'L'},sb:{n:'Sari Budiarti',y:'1963',g:'P'},hl:{n:'Hadi Lestari',y:'1962',g:'L'},sh:{n:'Susi Hadiwati',y:'1964',g:'P'},dl:{n:'Dedi Lestari',y:'1990',g:'L'},gl:{n:'Gita Lestari',y:'1992',g:'P'}});
-S.par.push(...L0('bd',['y','f']),...L0('hl',['y','f']),...L0('dl',['bd','sb']),...L0('gl',['hl','sh']));
-S.sp.push({a:'bd',b:'sb',t:'menikah',y:'1988'},{a:'hl',b:'sh',t:'menikah',y:'1989'},{a:'dl',b:'gl',t:'menikah',y:'2015'});
+const FN=n=>Object.keys(S.people).find(i=>S.people[i].n===n);{const d=FN('Dedi Lestari'),g=FN('Gita Lestari');if(d&&g)S.sp.push({a:d,b:g,t:'menikah',y:'1990'});}
 const TL={biologis:'kandung',adopsi:'adopsi',tiri:'tiri',wali:'wali'},SL={menikah:'menikah',cerai:'cerai'},SL2={cerai:'Cerai'},TG={adopsi:'Adopsi',tiri:'Tiri',wali:'Anak asuh'};
 const bioOnly=id=>{const ls=S.par.filter(l=>l.c===id);return ls.length>0&&ls.every(l=>l.t==='biologis');};
 const sibInfo=id=>{if(!bioOnly(id))return null;const k=parOf(id).slice().sort().join('+');const g=Object.keys(S.people).filter(c=>bioOnly(c)&&parOf(c).slice().sort().join('+')===k).sort((a,b)=>(+P(a).y||9999)-(+P(b).y||9999));return{n:g.indexOf(id)+1,N:g.length};};
@@ -227,10 +225,10 @@ const px=up(x),pa=up(a);let best=null;
 Object.keys(px).forEach(c=>{if(c in pa){const A=chain(px,x,c),B=chain(pa,a,c),d=A.length+B.length;if(!best||d<best.d)best={d,c,A,B};}});
 return best?{apex:best.c,on:new Set([...best.A,...best.B])}:null;
 }
-function layout(){
+function layout(shp){
 // Pasangan: laki-laki di kiri, perempuan di kanan, pasangan sekarang paling dekat, mantan lebih jauh.
 // Leluhur di atas (bisa ditambah), saudara dan sepupu di samping, anak dikelompokkan per pasangan, anak daun ditumpuk vertikal.
-const TS=S.ts,W=Math.round(120*TS),H=Math.round(64*TS),G=24,GW=72,GP=32,GG=64,V=80,SG=14,SP=16,LV=22,GS=34,pad=24,f=S.focus;
+const TS=S.ts,W=Math.round(120*TS),H=Math.round(64*TS),G=24,GW=72,GP=32,GG=64,V=124,SG=14,SP=16,LV=22,GS=34,pad=24,f=S.focus;
 Object.keys(GH).forEach(k=>delete GH[k]);
 const PI=S.path?pathInfo(f,S.anchor):null,pm=!!PI,isOn=i=>pm&&PI.on.has(i);
 const gr=i=>P(i).g,yr=i=>+P(i).y||9999,rk=i=>gr(i)==='L'?0:gr(i)==='P'?2:1;
@@ -238,13 +236,13 @@ const bioOf=c=>S.par.filter(l=>l.c===c&&l.t==='biologis').map(l=>l.p);
 const isAsuh=c=>{const ls=S.par.filter(l=>l.c===c);return ls.length>0&&ls.every(l=>l.t==='wali');};
 const maxD=2+S.up,lin=new Set(),tops=[],pin={};
 if(!pm){const walk=(q,d)=>{lin.add(q);const ps=pp(q);if(!ps.length)return;const s=ps.slice().sort((a,b)=>rk(a)-rk(b));pin[s[0]]=1e9;if(s[1])pin[s[1]]=-1e9;s.forEach(p=>lin.add(p));if(d+1>=maxD||s.every(p=>!pp(p).length))tops.push({set:s,row:-(d+1)});else s.forEach(p=>walk(p,d+1));};walk(f,0);}
-let owner={},lvl={},nodes=[],hs=0;const gm={};const SHD=new Set(),CF=[],cons=(a,b)=>a!==b&&!!pathInfo(a,b);
+let owner={},lvl={},nodes=[],hs=0;const gm={};const SHD=shp||new Set(),CFX=[],cons=(a,b)=>a!==b&&!!pathInfo(a,b);
 const pkid=id=>pm&&[...PI.on].some(q=>pp(q).includes(id));
 const dflt=(id,row,inF)=>pm?{u:isOn(id),k:isOn(id)&&pkid(id)}:(row<0||id===f||inF?{u:true,k:!(inF&&row>=2)}:{u:false,k:false});
 const uopen=(id,row,inF)=>dflt(id,row,inF).u!==S.tog.has('u:'+id);
 const gopen=(id,key,row,inF)=>{const d=dflt(id,row,inF),o=d.k||(!d.u&&S.tog.has('u:'+id));return o!==S.tog.has('g:'+id+'|'+key);};
 const cluster=(main,row,inF)=>{
-const SPo=spOf(main),real=SPo.filter(s=>!owner[s]&&!SHD.has(main+'|'+s)),shs=SPo.filter(s=>(owner[s]&&cons(main,s))||SHD.has(main+'|'+s)),open=uopen(main,row,inF);shs.forEach(s=>{GH['~'+s]={...P(s),shadow:s};});
+const SPo=spOf(main),real=SPo.filter(s=>!owner[s]&&!SHD.has(main+'|'+s)),shs=SPo.filter(s=>(owner[s]&&cons(main,s))||SHD.has(main+'|'+s)),open=uopen(main,row,inF);shs.forEach(s=>{GH['~'+s]={...P(s),shadow:s};});SPo.forEach(s=>{if(open&&owner[s]&&!SHD.has(main+'|'+s)&&!cons(main,s))CFX.push({key:main+'|'+s,k:s,pm:main});});
 const srt=[...real,...shs.map(s=>'~'+s)].sort((a,b)=>{const ka=lnk(main,rid(a)),kb=lnk(main,rid(b)),ea=(ka.t&&ka.t!=='menikah')?1:0,eb=(kb.t&&kb.t!=='menikah')?1:0;return ea-eb||(+kb.y||0)-(+ka.y||0);});
 let sps=open?srt:[];
 const bio1=chOf(main).some(c=>{const b=bioOf(c);return b.length===1&&b[0]===main;});
@@ -274,13 +272,13 @@ const by=new Map();c.kids.forEach(k=>{const kk=c.key(k);if(!by.has(kk))by.set(kk
 const gl=[...by.entries()].map(([kk,list])=>({c,key:kk,list,...c.anchor(kk)}));
 gl.sort((a,b)=>a.ax-b.ax);
 gl.forEach(g=>{
-g.total=g.list.length;g.open=gopen(c.main,g.key,row,inF);g.ents=[];
+g.total=g.list.length;g.open=gopen(c.main,g.key,row,inF);g.ents=[];if(!g.open&&lin.size){const lk=g.list.filter(k=>lin.has(k));if(lk.length){g.rest=g.total-lk.length;g.list=lk;g.open=true;}}
 if(!g.open){if(c.open)hs=1;}
 else{
 const sk=k=>isAsuh(k)?1e8:k in pin?pin[k]:yr(k);
 g.list.sort((a,b)=>sk(a)-sk(b));
 const kidInF=inF||c.main===f;
-g.list.forEach(k=>{let nn=owner[k];if(nn){const x=nn.cl.find(q=>q.main!==k&&q.mem.includes(k));if(x&&cons(x.main,k))CF.push(x.main+'|'+k);if(c.shs.some(q=>parOf(k).includes(q)))return;}if(!nn){nn=mk([k],row+1,kidInF);nn.by=N;}g.ents.push({c:k,n:nn,asuh:isAsuh(k)});gm[k]=[c.main,g.key,rid(g.key)];});
+g.list.forEach(k=>{let nn=owner[k];if(nn){const x=nn.cl.find(q=>q.main!==k&&q.mem.includes(k));if(x)CFX.push({key:x.main+'|'+k,k,pm:c.main,rel:cons(x.main,k)});if(c.shs.some(q=>parOf(k).includes(q)))return;}if(!nn){nn=mk([k],row+1,kidInF);nn.by=N;}g.ents.push({c:k,n:nn,asuh:isAsuh(k)});gm[k]=[c.main,g.key,rid(g.key)];});
 }
 N.groups.push(g);
 });
@@ -288,12 +286,12 @@ N.groups.push(g);
 N.pill=N.cl.some(c=>!c.open?(c.real.length||c.kids.length):N.groups.some(g=>g.c===c&&!g.open));
 return N;};
 const mainOf=set=>set.slice().sort((a,b)=>spOf(b).length-spOf(a).length||rk(a)-rk(b))[0];
-const build=()=>{owner={};lvl={};nodes=[];hs=0;CF.length=0;Object.keys(gm).forEach(k=>delete gm[k]);
+const build=()=>{owner={};lvl={};nodes=[];hs=0;CFX.length=0;Object.keys(gm).forEach(k=>delete gm[k]);
 if(pm)return[mk([PI.apex],0,false)];
 if(!tops.length)return[mk([f],0,false)];
 const rows=[];tops.forEach(t=>{if(!rows.includes(t.row))rows.push(t.row);});
 return rows.map(row=>mk(uniq(tops.filter(t=>t.row===row).map(t=>mainOf(t.set))),row,false));};
-let roots=build();if(CF.length){CF.forEach(x=>SHD.add(x));roots=build();}
+let roots=build();if(CFX.some(o=>o.rel&&!SHD.has(o.key))){CFX.forEach(o=>{if(o.rel){SHD.add(o.key);SHD.add(o.key.split('|').reverse().join('|'));}});roots=build();}
 if(!owner[f]){tops.length=0;roots=build();}
 const meas=N=>{if(N.done)return;N.done=1;
 let x=0;N.cl.forEach((c,i)=>{c.x0=x;x+=c.uw+(i<N.cl.length-1?GG:0);});N.uw=x;
@@ -320,7 +318,7 @@ ids.forEach(i=>{const q=pos[i];q.x+=sh;q.rowY=rowTop[q.row]+q.dy;q.y=q.rowY-q.ex
 nodes.forEach(N=>{if(N.placed)N.ul+=sh;});
 // area saudara dan sepupu: warna zebra per baris, tanpa tulisan. Anak asuh berada di luar area saudara.
 const uids=n=>n.cl.flatMap(c=>c.mem);
-const box=list=>{let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;list.forEach(i=>{const q=pos[i];x1=Math.min(x1,q.x);y1=Math.min(y1,q.y);x2=Math.max(x2,q.x+W);y2=Math.max(y2,q.y+q.h);});return{x1,y1,x2,y2};};
+const box=list=>{let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;list.forEach(i=>{const q=pos[i];x1=Math.min(x1,q.x);y1=Math.min(y1,q.y);x2=Math.max(x2,q.x+W);y2=Math.max(y2,q.y+q.h);});return{x1,y1,x2,y2,id:[...list].sort()[0]};};
 const areas=[];
 nodes.forEach(N=>{if(!N.placed)return;const vis=N.vis||[];
 vis.forEach(g=>{const es=g.ents.filter(e=>!e.asuh);if(es.length>=2||(es.length&&vis.length>1))areas.push({k:1,fk:g.c.main===f,row:es[0].n.row,...box(uniq(es.flatMap(e=>uids(e.n))))});});
@@ -329,6 +327,7 @@ if(false&&wk.length>=2){const gk=uniq(wk.flatMap(n=>n.vis.flatMap(g=>g.ents.map(
 });
 const cov=new Set();nodes.forEach(N=>(N.vis||[]).forEach(g=>{const es=g.ents.filter(e=>!e.asuh);if(es.length>=2||(es.length&&N.vis.length>1))es.forEach(e=>cov.add(e.n));}));
 nodes.forEach(N=>{if(!N.placed)return;N.cl.forEach(c=>{if(c.main===f){const ids=[...c.mem.filter(i=>i[0]!=='?'),...(N.vis||[]).filter(g=>g.c===c).flatMap(g=>g.ents.filter(e=>!e.asuh).flatMap(e=>e.n.cl.flatMap(q=>q.main===e.c?q.mem.filter(i=>i[0]!=='?'):[])))];if(ids.length>1)areas.push({k:0,row:N.row,...box(ids)});}else if(!pm&&lin.has(c.main)&&!cov.has(N))areas.push({k:3,row:N.row,...box(c.mem.filter(i=>i[0]!=='?'))});});});
+if(!shp){const far=CFX.filter(o=>!o.rel&&pos[o.k]&&pos[o.pm]&&Math.abs(pos[o.k].x-pos[o.pm].x)>W*8).flatMap(o=>[o.key,o.key.split('|').reverse().join('|')]);if(far.length)return layout(new Set([...SHD,...far]));}
 return{pos,nodes,roots,gm,areas,cw:Math.max(...ids.map(i=>pos[i].x))+W+pad,ch:Math.max(...ids.map(i=>pos[i].rowY))+H+pad+(hs?44:0),W,H,V,GS,PI,pm,lvl,frow:pos[f].row};
 }
 const sub=p=>p.ghost?'':p.u?'belum diketahui':p.w?(p.y||'?')+' – '+p.w:(p.ap?'±':'')+(p.y||'tahun ?');
@@ -341,7 +340,7 @@ const lt=(k,mem)=>S.par.find(l=>l.c===k&&mem.includes(l.p)&&l.t!=='biologis')||S
 const nrm=(a,b)=>[-Math.sign(b[1]-a[1]),Math.sign(b[0]-a[0])];
 const off=(p,d)=>p.map((q,i)=>{let sx=0,sy=0;if(i>0){const n=nrm(p[i-1],q);sx+=n[0];sy+=n[1];}if(i<p.length-1){const n=nrm(q,p[i+1]);sx+=n[0];sy+=n[1];}return[q[0]+d*sx,q[1]+d*sy];});
 const pth=p=>p.map((q,i)=>(i?'L':'M')+q[0]+' '+q[1]).join('');
-const LY=a=>a.k===2?0:a.k===3?2:a.k===0?3:a.fk?4:1,PD={0:[18,10],1:[10,12],2:[26,22],3:[6,6]};areas.slice().sort((a,b)=>LY(a)-LY(b)).forEach(a=>{const[pd,up]=PD[a.k],x=a.x1-pd,y=a.y1-pd-up,w=a.x2-a.x1+pd*2,h=a.y2-a.y1+pd*2+up,z=(((a.row-frow)%2)+2)%2===0?'zp':'zb';bd+=a.k===0?`<svg class="ar" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;overflow:visible" aria-hidden="true"><rect x="2" y="2" width="${w-4}" height="${h-4}" rx="18" fill="none" stroke="#F0A04B" stroke-width="4" stroke-dasharray="0 12" stroke-linecap="round"/></svg>`:`<div class="ar ${z} a${a.k}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>`;});
+const LY=a=>a.k===2?0:a.k===3?2:a.k===0?3:a.fk?4:1,PD={0:[18,10],1:[10,12],2:[26,22],3:[6,6]};areas.slice().sort((a,b)=>LY(a)-LY(b)).forEach(a=>{const[pd,up]=PD[a.k],x=a.x1-pd,y=a.y1-pd-up,w=a.x2-a.x1+pd*2,h=a.y2-a.y1+pd*2+up,z=(((a.row-frow)%2)+2)%2===0?'zp':'zb';bd+=a.k===0?`<svg class="ar" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;overflow:visible" aria-hidden="true"><rect x="2" y="2" width="${w-4}" height="${h-4}" rx="18" fill="none" stroke="#F0A04B" stroke-width="4" stroke-dasharray="0 12" stroke-linecap="round"/></svg>`:`<div class="ar ${z} a${a.k}" data-ak="${a.k}:${a.id}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>`;});
 // garis pasangan: mulai dari samping kotak. Pasangan berikutnya lewat di atas kotak pasangan yang lebih dekat, lalu turun di celah
 nodes.forEach(N=>{if(!N.placed)return;N.cl.forEach(c=>{const qm=pos[c.main],rowY=qm.rowY,mid=rowY+H/2;
 c.sps.forEach((s,i)=>{const k=i+1,qs=pos[s],ghost=s[0]==='?',link=ghost?{t:'?'}:lnk(c.main,rid(s)),t=link.t||'menikah';
@@ -354,7 +353,7 @@ if(t==='cerai')cd+=`<span class="lc" style="left:${chx}px;top:${chy}px">✕ Cera
 });});});
 // garis ke anak: satu garis bagi per pasangan, tiap tingkat berjarak cukup untuk tombol lipat
 nodes.forEach(N=>{if(!N.placed)return;const vis=N.vis;
-vis.forEach((g,gi)=>{const rowY=pos[g.c.main].rowY,ax=N.ul+g.ax,ay=rowY+g.ay,yb=rowY+H+30+(vis.length-1-gi)*GS,mem=[g.c.main,rid(g.key)].filter(Boolean);
+vis.forEach((g,gi)=>{const rowY=pos[g.c.main].rowY,ax=N.ul+g.ax,ay=rowY+g.ay,yb=rowY+H+60+(vis.length-1-gi)*GS,mem=[g.c.main,rid(g.key)].filter(Boolean);
 if(N.stack){const col=N.cols[gi],sx=N.ul+col.sx,lastN=g.ents[g.ents.length-1].n,lastY=pos[lastN.cl[0].main].rowY+H/2;
 sv+=`<path d="M${ax} ${ay}V${yb}H${sx}V${lastY}"/>`;
 g.ents.forEach(e=>{const cy=pos[e.n.cl[0].main].rowY+H/2,lf=Math.min(...e.n.cl[0].mem.map(i=>pos[i].x));sv+=`<path d="M${sx} ${cy}H${lf}"${sa(lt(e.c,mem))}/>`;if((isOn(e.c)&&isOn(g.c.main))||S.sel===e.c||S.sel===g.c.main)hl+=`<path d="M${ax} ${ay}V${yb}H${sx}V${cy}H${lf}"/>`;});
@@ -363,12 +362,12 @@ const xs=[ax,...g.ents.map(e=>cx(e.c))];
 sv+=`<path d="M${ax} ${ay}V${yb}M${Math.min(...xs)} ${yb}H${Math.max(...xs)}"/>`;
 g.ents.forEach(e=>{sv+=`<path d="M${cx(e.c)} ${yb}V${pos[e.c].y}"${sa(lt(e.c,mem))}/>`;if((isOn(e.c)&&isOn(g.c.main))||S.sel===e.c||S.sel===g.c.main)hl+=`<path d="M${ax} ${ay}V${yb}H${cx(e.c)}V${pos[e.c].y}"/>`;});}
 if(ML[g.c.main+'|'+g.key]&&isOn(g.c.main)&&g.ents.some(e=>isOn(e.c)))hl+=`<path d="${ML[g.c.main+'|'+g.key]}"/>`;
-cd+=`<button class="tg" data-act="col" data-id="g:${g.c.main}|${g.key}" aria-label="Lipat anak" style="left:${ax}px;top:${yb}px">−</button>`;
+cd+=g.rest>0?(()=>{const t='▸ '+g.rest+' anak lain',w=Math.max(88,t.length*6.6+24);return `<button class="col" data-act="col" data-id="g:${g.c.main}|${g.key}" style="left:${ax-w/2}px;top:${yb-16}px;width:${w}px">${t}</button>`;})():`<button class="tg" data-act="col" data-id="g:${g.c.main}|${g.key}" aria-label="Lipat anak" style="left:${ax}px;top:${yb}px">−</button>`;
 });
 N.cl.forEach(c=>{const q=pos[c.main];
 if(c.opened)cd+=`<button class="tg2" data-act="col" data-id="u:${c.main}" aria-label="Sembunyikan pasangan dan anak" style="left:${q.x+W-2}px;top:${q.y+2}px">−</button>`;
 if(!c.open){const gg=N.groups.filter(g=>g.c===c),tot=c.kids.length,ko=gg.some(g=>g.open),parts=[c.real.length?'pasangan':'',!ko&&tot?tot+' anak':''].filter(Boolean),txt='▸ '+parts.join(' & '),w=Math.max(88,txt.length*6.6+24);
-if(parts.length)cd+=`<button class="col" data-act="col" data-id="u:${c.main}" style="left:${cx(c.main)-w/2}px;top:${q.rowY+H+8}px;width:${w}px">${txt}</button>`;}
+if(parts.length)cd+=`<button class="col" data-act="col" data-id="u:${c.main}" style="left:${ko?cx(c.main)+8:cx(c.main)-w/2}px;top:${q.rowY+H+8}px;width:${w}px">${txt}</button>`;}
 else N.groups.filter(g=>g.c===c&&!g.open).forEach(g=>{const ax=N.ul+g.ax;cd+=`<button class="col" data-act="col" data-id="g:${c.main}|${g.key}" aria-label="${g.total} anak" style="left:${ax-44}px;top:${q.rowY+H+8}px">▸ ${g.total} anak</button>`;});
 });
 });
@@ -379,8 +378,8 @@ Object.entries(by).forEach(([t,ps],ti)=>{const q=pos[c],a=pos[ps[0]],b=ps[1]&&po
 if(b&&lnk(ps[0],ps[1])&&a.rowY===b.rowY){const l1=a.x<b.x?a:b,r1=a.x<b.x?b:a;ax=(l1.x+W+r1.x)/2;ay=a.rowY+H/2;}else{ax=cx(ps[0]);ay=a.rowY+H;}
 const yc=q.y-10-(LN2++%4)*8,xc=cx(c)+22;sv+=`<path d="M${ax} ${ay}V${yc}H${xc}V${q.y}" stroke-dasharray="${PAT[t]||'6 4'}"${t==='tiri'?' stroke-linecap="round"':''}/>`;});});
 // tombol tambah leluhur ke atas
-if(!pm){roots.forEach(r=>r.cl.forEach(c=>{c.mem.filter(i=>i[0]!=='?'&&pp(i).length).forEach(i=>{const q=pos[i];cd+=`<button class="col" data-act="up" data-id="1" aria-label="Tambah leluhur" style="left:${cx(i)-52}px;top:${q.y-44}px;width:104px">▴ leluhur</button>`;});}));
-if(S.up>0){const r0=-(1+S.up),ms=Object.keys(pos).filter(i=>i[0]!=='?'&&pos[i].row===r0&&pp(i).length);(ms.length?ms:[null]).forEach(i=>{cd+=`<button class="col" data-act="up" data-id="-1" aria-label="Kurangi leluhur" style="left:${i?cx(i)-52:24}px;top:${i?pos[i].y-44:6}px;width:104px">▾ tutup</button>`;});}}
+if(!pm){roots.forEach(r=>r.cl.forEach(c=>{c.mem.filter(i=>i[0]!=='?'&&pp(i).length).forEach(i=>{const q=pos[i];cd+=`<button class="col" data-act="up" data-id="1" data-for="${i}" aria-label="Tambah leluhur" style="left:${cx(i)-52}px;top:${q.y-44}px;width:104px">▴ leluhur</button>`;});}));
+if(S.up>0){const r0=-(1+S.up),ms=Object.keys(pos).filter(i=>i[0]!=='?'&&pos[i].row===r0&&pp(i).length);(ms.length?ms:[null]).forEach(i=>{cd+=`<button class="col" data-act="up" data-id="-1" data-for="${i||''}" aria-label="Kurangi leluhur" style="left:${i?cx(i)+10:24}px;top:${i?pos[i].y-44:6}px;width:104px">▾ tutup</button>`;});}}
 const ptag={};S.par.filter(l=>l.c===S.focus&&l.t!=='biologis').forEach(l=>{ptag[l.p]={adopsi:'Ortu angkat',tiri:'Ortu tiri',wali:'Ortu wali'}[l.t];});
 Object.entries(pos).forEach(([id,q])=>{const p=P(id),rl=S.par.find(l=>l.c===id&&l.t!=='biologis'),isA=pm&&id===S.anchor,pth2=pm&&isOn(id)&&!isA;
 const KA={biologis:'kandung',adopsi:'angkat',tiri:'tiri',wali:'asuh'},KP={biologis:'kandung',adopsi:'angkat',tiri:'tiri',wali:'wali'};
@@ -510,10 +509,20 @@ return `<div class="rw"><div class="t">Hapus ${esc(p.n)}?</div><button class="x"
 const tlist=()=>{const q=(S.tq||'').trim().toLowerCase(),a=S.sel,r=Object.keys(S.people).filter(i=>i!==a&&!P(i).pend&&P(i).n.toLowerCase().includes(q)).sort((x,y)=>P(x).n.localeCompare(P(y).n,'id'));return r.length?r.map(i=>`<button class="ex" data-act="tpick" data-id="${i}">${esc(P(i).n)}<small>${P(i).y||'tahun ?'}</small></button>`).join(''):'<div class="m" style="padding:8px">Tidak ada hasil.</div>';};
 function shTrace(){const a=S.sel;
 return `<div class="rw"><div class="t">Telusuri hubungan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+(S.tr?`<div class="rw"><div class="m">Dari <b>${esc(P(a).n)}</b> ke <b>${esc(P(S.tr).n)}</b></div><button class="ch" data-act="tchg">Ganti</button></div>`+tracePath(a,S.tr)+'<button class="b o2" data-act="tshow">Tampilkan jalur di pohon</button>':`<label for="tq">Dari <b>${esc(P(a).n)}</b> ke (cari nama, urut A–Z)</label><input id="tq" type="search" autocomplete="off" value="${esc(S.tq||'')}"><div id="tl" class="c" style="padding:4px;max-height:260px;overflow:auto">${tlist()}</div>`);}
-function snap(){const m={};document.querySelectorAll('#stage .card[data-k]').forEach(e=>{m[e.dataset.k]=[parseFloat(e.style.left),parseFloat(e.style.top)];});$('#stage').classList.add('gl');return{m,x:S.x,y:S.y,z:S.z};}
-function glide(o){const st=$('#stage'),rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,els=[...st.querySelectorAll('.card[data-k]')];
-if(!rm)els.forEach(e=>{const p=o.m[e.dataset.k];if(p){const dx=((o.x+p[0]*o.z)-(S.x+parseFloat(e.style.left)*S.z))/S.z,dy=((o.y+p[1]*o.z)-(S.y+parseFloat(e.style.top)*S.z))/S.z;if(Math.abs(dx)+Math.abs(dy)>1){e.style.transform=`translate(${dx}px,${dy}px)`;e.dataset.g='1';}}else{e.style.opacity='0';e.dataset.g='1';}});
-void st.offsetWidth;els.forEach(e=>{if(e.dataset.g){e.style.transition='transform .35s ease,opacity .35s ease';e.style.transform='';e.style.opacity='';}});st.classList.remove('gl');}
+function snap(){const m={},a={};document.querySelectorAll('#stage .card[data-k]').forEach(e=>{m[e.dataset.k]=[parseFloat(e.style.left),parseFloat(e.style.top)];});document.querySelectorAll('#stage div.ar[data-ak]').forEach(e=>{a[e.dataset.ak]=[parseFloat(e.style.left),parseFloat(e.style.top),parseFloat(e.style.width),parseFloat(e.style.height)];});$('#stage').classList.add('gl');return{m,a,x:S.x,y:S.y,z:S.z};}
+function glide(o,tg){const st=$('#stage'),vw=vp.clientWidth,vh=vp.clientHeight,rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,els=[...st.querySelectorAll('.card[data-k]')],ars=[...st.querySelectorAll('div.ar[data-ak]')],pts=[],vis=(x,y)=>x>=0&&y>=0&&x<=vw&&y<=vh;let lost=false;
+if(!rm){els.forEach(e=>{const p=o.m[e.dataset.k],L=parseFloat(e.style.left),T=parseFloat(e.style.top),w=parseFloat(e.style.width),h=parseFloat(e.style.height);if(p){const ol=(o.x+p[0]*o.z-S.x)/S.z,ot=(o.y+p[1]*o.z-S.y)/S.z,dx=ol-L,dy=ot-T;if(Math.abs(dx)+Math.abs(dy)>1){e.style.transform=`translate(${dx}px,${dy}px)`;e.dataset.g='1';if(vis(S.x+(ol+w/2)*S.z,S.y+(ot+h/2)*S.z)){pts.push([ol,ot,w,h],[L,T,w,h]);if(!vis(S.x+(L+w/2)*S.z,S.y+(T+h/2)*S.z))lost=true;}}}else{e.style.opacity='0';e.dataset.g='1';}});
+ars.forEach(e=>{const p=o.a[e.dataset.ak];e.dataset.nv=[e.style.left,e.style.top,e.style.width,e.style.height].join('|');if(p){e.style.left=(o.x+p[0]*o.z-S.x)/S.z+'px';e.style.top=(o.y+p[1]*o.z-S.y)/S.z+'px';e.style.width=p[2]+'px';e.style.height=p[3]+'px';}else e.style.opacity='0';e.dataset.g='1';});}
+// kamera: hanya kalau ada kartu yang tadinya kelihatan lalu keluar layar. Zoom out sebentar (tidak lebih jauh dari tombol -), lalu zoom in ke kartu yang dibuka/ditutup
+let cam=null,fin=false;const T0=st.style.transform;
+if(!rm&&st.animate&&lost){const tq=tg&&els.find(e=>e.dataset.k===tg);if(tq){const L=parseFloat(tq.style.left),T=parseFloat(tq.style.top),w=parseFloat(tq.style.width),h=parseFloat(tq.style.height);pts.push([L,T,w,h]);
+const x1=Math.min(...pts.map(r=>r[0]))-40,y1=Math.min(...pts.map(r=>r[1]))-40,x2=Math.max(...pts.map(r=>r[0]+r[2]))+40,y2=Math.max(...pts.map(r=>r[1]+r[3]))+40,zo=Math.max(.3,Math.min(S.z,vw/(x2-x1),vh/(y2-y1)));
+if(zo<S.z*.95)cam=`translate(${vw/2-(x1+x2)/2*zo}px,${vh/2-(y1+y2)/2*zo}px) scale(${zo})`;
+S.x=vw/2-(L+w/2)*S.z;S.y=vh/2-(T+h/2)*S.z;ap();fin=true;}}
+const dl=cam?280:0;void st.offsetWidth;
+els.forEach(e=>{if(e.dataset.g){e.style.transition=`transform .35s ease ${dl}ms,opacity .35s ease ${dl}ms`;e.style.transform='';e.style.opacity='';}});
+ars.forEach(e=>{if(e.dataset.g){const v=e.dataset.nv.split('|');e.style.transition=`left .35s ease ${dl}ms,top .35s ease ${dl}ms,width .35s ease ${dl}ms,height .35s ease ${dl}ms,opacity .35s ease ${dl}ms`;e.style.left=v[0];e.style.top=v[1];e.style.width=v[2];e.style.height=v[3];e.style.opacity='';}});
+if(fin){const T1=st.style.transform;st.animate(cam?[{transform:T0,offset:0,easing:'ease-in-out'},{transform:cam,offset:.28},{transform:cam,offset:.72,easing:'ease-in-out'},{transform:T1,offset:1}]:[{transform:T0,easing:'ease-in-out'},{transform:T1}],{duration:cam?1000:600});setTimeout(()=>st.classList.remove('gl'),dl);}else st.classList.remove('gl');}
 $('#app').addEventListener('click',e=>{
 if(mv>6&&e.target.closest('#vp')){mv=0;return;}
 const el=e.target.closest('[data-act]');if(!el)return;
@@ -543,8 +552,8 @@ case'rcancel':S.rej=null;hdr();break;
 case'okw':sync();f.okw=true;save();break;
 case'nw':f.warn=null;sheet();break;
 case'role':S.role=id;hdr();sheet();break;
-case'col':{const sn=snap(),pid=id.slice(2).split('|')[0],o=layout().pos[pid];if(S.tog.has(id))S.tog.delete(id);else S.tog.add(id);const L=tree(),n=L.pos[pid];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}glide(sn);break;}
-case'up':{const sn=snap(),o=layout().pos[S.focus];S.up=Math.max(0,S.up+(+id));const L=tree(),n=L.pos[S.focus];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}glide(sn);break;}
+case'col':{const sn=snap(),pid=id.slice(2).split('|')[0],o=layout().pos[pid];if(S.tog.has(id))S.tog.delete(id);else S.tog.add(id);const L=tree(),n=L.pos[pid];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}glide(sn,pid);break;}
+case'up':{const sn=snap(),o=layout().pos[S.focus];S.up=Math.max(0,S.up+(+id));const L=tree(),n=L.pos[S.focus];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}glide(sn,el.dataset.for||S.focus);break;}
 case'me':S.focus=S.me;S.path=false;S.tog.clear();S.hint=null;S.up=0;S.z=.9;done();sheet();ctr(tree());break;
 case'loc':{const q=S.props.find(r=>r.id===+id);if(!q||!q.at)break;S.path=false;S.tog.clear();S.focus=q.at.find(i=>P(i))||S.focus;S.hint=new Set(q.at);tab('pohon');clearTimeout(hT);hT=setTimeout(()=>{S.hint=null;tree();},8000);toast('Posisi ditandai kuning di pohon');break;}
 case'path':{if(S.path){S.path=false;S.tog.clear();}else if(S.focus===S.anchor){toast('Fokus sama dengan acuan');break;}else if(!pathInfo(S.focus,S.anchor)){toast('Tidak ada jalur keturunan. Pakai Telusuri hubungan.');break;}else{S.path=true;S.tog.clear();}ctr(tree());break;}
@@ -554,11 +563,11 @@ case'fs':{const v=!S.fs;try{if(v&&document.documentElement.requestFullscreen){co
 case'ket':{const o=$('#ktp').classList.toggle('o');$('#ktb').setAttribute('aria-pressed',String(o));break;}
 /*DEV:start*/
 case'dev':{const o=$('#dvp').classList.toggle('o');$('#dvb').setAttribute('aria-pressed',String(o));break;}
-case'ex':{const e=EX[+id],o=e[2],hs=typeof o.h==='function'?o.h():o.h;S.path=!!o.p;S.anchor='a';S.up=0;S.tog.clear();S.focus=o.f;S.hint=new Set(hs);S.z=o.p?.7:.9;done();sheet();$('#dvp').classList.remove('o');$('#dvb').setAttribute('aria-pressed','false');const L=tree(),q=L.pos[o.c||hs[0]||o.f];if(q){S.x=vp.clientWidth/2-(q.x+L.W/2)*S.z;S.y=vp.clientHeight/2-(q.y+L.H/2)*S.z;ap();}toast(e[0]+': '+e[1]);clearTimeout(hT);hT=setTimeout(()=>{S.hint=null;tree();},6000);break;}
+case'ex':{const e=EX[+id],o=e[2],hs=typeof o.h==='function'?o.h():o.h;S.path=!!o.p;S.anchor='a';S.up=0;S.tog.clear();(o.t||[]).forEach(x=>S.tog.add(x));S.focus=o.f;S.hint=new Set(hs);S.z=o.p?.7:.9;done();sheet();$('#dvp').classList.remove('o');$('#dvb').setAttribute('aria-pressed','false');const L=tree(),q=L.pos[o.c||hs[0]||o.f];if(q){S.x=vp.clientWidth/2-(q.x+L.W/2)*S.z;S.y=vp.clientHeight/2-(q.y+L.H/2)*S.z;ap();}toast(e[0]+': '+e[1]);clearTimeout(hT);hT=setTimeout(()=>{S.hint=null;tree();},6000);break;}
 /*DEV:end*/
 case'ts':setTs(+id);break;
 case'lang':setLang(id);break;
-case'jump':{S.hint=new Set([id]);const L=tree(),q=L.pos[id];if(q){const st=$('#stage');S.x=vp.clientWidth/2-(q.x+L.W/2)*S.z;S.y=vp.clientHeight/2-(q.y+L.H/2)*S.z;st.style.transition='transform .45s ease';void st.offsetWidth;ap();setTimeout(()=>{st.style.transition='';},500);}clearTimeout(hT);hT=setTimeout(()=>{S.hint=null;tree();},4000);break;}
+case'jump':{S.hint=new Set([id]);const ox=S.x,oy=S.y,L=tree(),q=L.pos[id];if(q){const st=$('#stage'),vw=vp.clientWidth,vh=vp.clientHeight,z=S.z,mv=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;S.x=vw/2-(q.x+L.W/2)*z;S.y=vh/2-(q.y+L.H/2)*z;ap();if(!mv&&st.animate){const T=(x,y,k)=>`translate(${x}px,${y}px) scale(${k})`,c0=[(vw/2-ox)/z,(vh/2-oy)/z],c1=[(vw/2-S.x)/z,(vh/2-S.y)/z],zo=Math.max(.3,Math.min(z,vw*.8/(Math.abs(c1[0]-c0[0])+vw/z*.4),vh*.8/(Math.abs(c1[1]-c0[1])+vh/z*.4))),cm=[(c0[0]+c1[0])/2,(c0[1]+c1[1])/2];st.animate([{transform:T(ox,oy,z),easing:'ease-in-out'},{transform:T(vw/2-cm[0]*zo,vh/2-cm[1]*zo,zo),offset:.45,easing:'ease-in-out'},{transform:T(S.x,S.y,z)}],{duration:1000});}}clearTimeout(hT);hT=setTimeout(()=>{S.hint=null;tree();},4000);break;}
 case'gd':sync();f.g=id;sheet();break;
 case'ss':sync();f.ss=id;sheet();break;
 case'zin':zoom(.15);break;
@@ -599,7 +608,7 @@ const EX=[
 ['Sepupu seayah (dari istri kedua Hasan Basri)','Cucu Hasan Basri dan Marni Lestari',{f:'a',h:()=>chOf('h').filter(c=>parOf(c).includes('mn')).flatMap(chOf)}],
 ['Sepupu seibu (pernikahan pertama Fatimah Zahra)','Cucu Fatimah Zahra dan Rahmat Hidayat',{f:'a',h:()=>chOf('sm')}],
 ['Jalur ke acuan, sepupu terlihat','Dari Ibrahim Basri ke Ahmad Fauzi Rahman',{f:'ib',h:['a'],p:1,c:'h'}],
-['Sepupu menikah: kartu bayangan','Dedi Lestari dan Gita Lestari, cucu Yusuf dan Fatimah',{f:'dl',h:['dl','gl']}]];
+['Menikah antar keluarga jauh: kartu bayangan','Dedi Lestari (anak Budi Saputra) dan Gita Lestari (anak Hadi Lestari), letaknya jauh kiri dan kanan',{f:'a',t:['u:'+FN('Dedi Lestari'),'u:'+FN('Gita Lestari')],h:()=>[FN('Dedi Lestari'),FN('Gita Lestari')]}]];
 /*DEV:end*/
 initPanels();fsIcon();
 
