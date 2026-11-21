@@ -61,7 +61,7 @@ h1{font-size:calc(20px*var(--ts,1));margin:0}
 .yn{display:flex;justify-content:center;gap:88px;margin-top:6px}
 .rb2{width:60px;height:60px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;color:#fff;padding:0}
 .rb2.ok{background:#1e8449}.rb2.rj{background:#b42318}
-.ar{position:absolute;border-radius:18px;pointer-events:none}.ar.zp.a1{background:#f4cfd4}.ar.zp.a2{background:#f9e3e6}.ar.zp.a3{background:#eba9b3}.ar.zb.a1{background:#d3dcee}.ar.zb.a2{background:#e8edf7}.ar.zb.a3{background:#b4c3e0}.ar.a0{background:#cdeae4}
+.ar{position:absolute;border-radius:18px;pointer-events:none}.ar.zp.a1{background:#f9e1e4}.ar.zp.a2{background:#fcf0f1}.ar.zp.a3{background:#f9e1e4}.ar.zb.a1{background:#e3e9f5}.ar.zb.a2{background:#f0f3fa}.ar.zb.a3{background:#e3e9f5}.ar.a0{background:#e0f3ef}
 .al{position:absolute;font-size:calc(11px*var(--ts,1));font-weight:700;color:var(--mut);pointer-events:none;white-space:nowrap}
 #app.fsm{max-width:none}#app.fsm header,#app.fsm #nv{display:none}#app.fsm .vw{margin:0;border-radius:0;border:0}
 .pt.kt{position:static}.pt.dv{left:auto;right:10px}
@@ -120,6 +120,8 @@ select{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:1
 .tb{font-size:calc(12px*min(var(--ts,1),1.5));min-width:0;padding:0 2px}
 html[data-big="1"] #v-pohon header .m{display:none}
 #v-menu{padding:0;overflow:hidden;gap:0}#mn{flex:1;min-height:0;overflow:auto;padding:12px 16px}#trk{flex:none;display:flex;justify-content:center;padding:8px 16px 10px;background:var(--bg)}input[type=range]{border:0;padding:0;accent-color:var(--acc)}
+.ch.on .sx{color:inherit}
+#stage svg,#stage .ar,#stage .tg,#stage .tg2,#stage .col,#stage .lc{transition:opacity .3s ease .15s}#stage.gl svg,#stage.gl .ar,#stage.gl .tg,#stage.gl .tg2,#stage.gl .col,#stage.gl .lc{opacity:0}
 </style>
 </head>
 <body>
@@ -170,6 +172,7 @@ const chOf=id=>uniq(S.par.filter(l=>l.p===id).map(l=>l.c));
 const spOf=id=>S.sp.filter(s=>s.a===id||s.b===id).map(s=>s.a===id?s.b:s.a);
 // orang tua utama: yang kandung; kalau tidak ada yang kandung, semua (mis. anak angkat atau wali)
 const pp=c=>{const ls=S.par.filter(l=>l.c===c),b=ls.filter(l=>l.t==='biologis');return uniq((b.length?b:ls).map(l=>l.p));};
+const rid=x=>x&&x[0]==='~'?x.slice(1):x;
 const lnk=(a,b)=>S.sp.find(s=>(s.a===a&&s.b===b)||(s.a===b&&s.b===a));
 // data contoh: keluarga besar, tiap pasangan di 4 generasi punya minimal 5 anak
 const FL=['Agus','Budi','Dedi','Hadi','Lukman','Oki','Putra','Teguh','Umar','Wahyu','Zaki','Bagas'],FP=['Citra','Eka','Farah','Gita','Indah','Maya','Nanda','Rani','Sinta','Vina','Yanti','Intan'],LN=['Santoso','Wijaya','Pratama','Hidayat','Nugroho','Saputra','Lestari','Kusuma','Rahmawati','Setiawan','Permana','Utami'];
@@ -189,6 +192,9 @@ chOf('h').filter(c=>parOf(c).includes('mn')).forEach(i=>fill(i,3));
 chOf('h').filter(c=>c!=='k'&&parOf(c).includes('ik')).slice(0,2).forEach(i=>fill(i,3));
 chOf('y').filter(c=>c!=='am'&&parOf(c).includes('f')).slice(0,2).forEach(i=>fill(i,3));
 fill('sm',3);
+Object.assign(S.people,{bd:{n:'Budi Saputra',y:'1960',g:'L'},sb:{n:'Sari Budiarti',y:'1963',g:'P'},hl:{n:'Hadi Lestari',y:'1962',g:'L'},sh:{n:'Susi Hadiwati',y:'1964',g:'P'},dl:{n:'Dedi Lestari',y:'1990',g:'L'},gl:{n:'Gita Lestari',y:'1992',g:'P'}});
+S.par.push(...L0('bd',['y','f']),...L0('hl',['y','f']),...L0('dl',['bd','sb']),...L0('gl',['hl','sh']));
+S.sp.push({a:'bd',b:'sb',t:'menikah',y:'1988'},{a:'hl',b:'sh',t:'menikah',y:'1989'},{a:'dl',b:'gl',t:'menikah',y:'2015'});
 const TL={biologis:'kandung',adopsi:'adopsi',tiri:'tiri',wali:'wali'},SL={menikah:'menikah',cerai:'cerai'},SL2={cerai:'Cerai'},TG={adopsi:'Adopsi',tiri:'Tiri',wali:'Anak asuh'};
 const bioOnly=id=>{const ls=S.par.filter(l=>l.c===id);return ls.length>0&&ls.every(l=>l.t==='biologis');};
 const sibInfo=id=>{if(!bioOnly(id))return null;const k=parOf(id).slice().sort().join('+');const g=Object.keys(S.people).filter(c=>bioOnly(c)&&parOf(c).slice().sort().join('+')===k).sort((a,b)=>(+P(a).y||9999)-(+P(b).y||9999));return{n:g.indexOf(id)+1,N:g.length};};
@@ -232,35 +238,35 @@ const bioOf=c=>S.par.filter(l=>l.c===c&&l.t==='biologis').map(l=>l.p);
 const isAsuh=c=>{const ls=S.par.filter(l=>l.c===c);return ls.length>0&&ls.every(l=>l.t==='wali');};
 const maxD=2+S.up,lin=new Set(),tops=[],pin={};
 if(!pm){const walk=(q,d)=>{lin.add(q);const ps=pp(q);if(!ps.length)return;const s=ps.slice().sort((a,b)=>rk(a)-rk(b));pin[s[0]]=1e9;if(s[1])pin[s[1]]=-1e9;s.forEach(p=>lin.add(p));if(d+1>=maxD||s.every(p=>!pp(p).length))tops.push({set:s,row:-(d+1)});else s.forEach(p=>walk(p,d+1));};walk(f,0);}
-let owner={},lvl={},nodes=[],hs=0;const gm={};
+let owner={},lvl={},nodes=[],hs=0;const gm={};const SHD=new Set(),CF=[],cons=(a,b)=>a!==b&&!!pathInfo(a,b);
 const pkid=id=>pm&&[...PI.on].some(q=>pp(q).includes(id));
 const dflt=(id,row,inF)=>pm?{u:isOn(id),k:isOn(id)&&pkid(id)}:(row<0||id===f||inF?{u:true,k:!(inF&&row>=2)}:{u:false,k:false});
 const uopen=(id,row,inF)=>dflt(id,row,inF).u!==S.tog.has('u:'+id);
 const gopen=(id,key,row,inF)=>{const d=dflt(id,row,inF),o=d.k||(!d.u&&S.tog.has('u:'+id));return o!==S.tog.has('g:'+id+'|'+key);};
 const cluster=(main,row,inF)=>{
-const real=spOf(main).filter(s=>!owner[s]),open=uopen(main,row,inF);
-const srt=real.slice().sort((a,b)=>{const ka=lnk(main,a),kb=lnk(main,b),ea=(ka.t&&ka.t!=='menikah')?1:0,eb=(kb.t&&kb.t!=='menikah')?1:0;return ea-eb||(+kb.y||0)-(+ka.y||0);});
+const SPo=spOf(main),real=SPo.filter(s=>!owner[s]&&!SHD.has(main+'|'+s)),shs=SPo.filter(s=>(owner[s]&&cons(main,s))||SHD.has(main+'|'+s)),open=uopen(main,row,inF);shs.forEach(s=>{GH['~'+s]={...P(s),shadow:s};});
+const srt=[...real,...shs.map(s=>'~'+s)].sort((a,b)=>{const ka=lnk(main,rid(a)),kb=lnk(main,rid(b)),ea=(ka.t&&ka.t!=='menikah')?1:0,eb=(kb.t&&kb.t!=='menikah')?1:0;return ea-eb||(+kb.y||0)-(+ka.y||0);});
 let sps=open?srt:[];
 const bio1=chOf(main).some(c=>{const b=bioOf(c);return b.length===1&&b[0]===main;});
 if(open&&bio1){const gid='?'+main;GH[gid]={n:'Pasangan belum diketahui',g:gr(main)==='L'?'P':gr(main)==='P'?'L':'',ghost:1};sps=[...sps,gid];}
 const left=gr(main)==='P',mem=left?[...sps].reverse().concat(main):[main,...sps],mi=mem.indexOf(main);
-const near=sps[0],exNear=near&&near[0]!=='?'&&(lnk(main,near).t||'menikah')!=='menikah';
+const near=sps[0],exNear=near&&near[0]!=='?'&&(lnk(main,rid(near)).t||'menikah')!=='menikah';
 const off=[];let x=0;mem.forEach((q,i)=>{off.push(x);x+=W;if(i<mem.length-1){const a=mem[i],b=mem[i+1];x+=(exNear&&((a===main&&b===near)||(b===main&&a===near)))?GW:G;}});
 const n=sps.length,ext=n>=2?24+(n-2)*LV:0;
 const anchor=key=>{if(!key)return{ax:off[mi]+W/2,ay:H};const k=sps.indexOf(key)+1,j=left?mi-k:mi+k;
 if(k===1)return{ax:left?(off[j]+W+off[mi])/2:(off[mi]+W+off[j])/2,ay:H/2};
 const jn=left?j+1:j-1;return{ax:left?(off[j]+W+off[jn])/2:(off[jn]+W+off[j])/2,ay:H/2};};
-const memAll=[main,...real];
+const memAll=[main,...real,...shs];
 const own=c=>{const ps=pp(c);return ps.some(p=>memAll.includes(p))&&ps.every(p=>memAll.includes(p)||!spOf(p).some(s=>memAll.includes(s)));};
 const key=c=>{if(!open)return'';const ls=S.par.filter(l=>l.c===c),b=ls.filter(l=>l.t==='biologis').map(l=>l.p),all=ls.map(l=>l.p),base=b.length?b:all;
-if(b.length&&b.includes(main)){const s=sps.find(q=>q[0]!=='?'&&b.includes(q));if(s)return s;if(b.length===1&&sps.some(q=>q[0]==='?'))return'?'+main;return'';}
-const s=sps.find(q=>q[0]!=='?'&&base.includes(q));return s||'';};
+if(b.length&&b.includes(main)){const s=sps.find(q=>q[0]!=='?'&&b.includes(rid(q)));if(s)return s;if(b.length===1&&sps.some(q=>q[0]==='?'))return'?'+main;return'';}
+const s=sps.find(q=>q[0]!=='?'&&base.includes(rid(q)));return s||'';};
 const kids=uniq(memAll.flatMap(chOf)).filter(c=>own(c));
-return{main,mem,off,mi,uw:x,ext,sps,left,open,opened:open&&!dflt(main,row,inF).u,anchor,key,kids,real};};
+return{main,mem,off,mi,uw:x,ext,sps,left,open,opened:open&&!dflt(main,row,inF).u,anchor,key,kids,real:real.concat(shs),shs};};
 const mk=(mains,row,inF)=>{
 const N={row,cl:[],groups:[],inF,by:null};nodes.push(N);
 mains.forEach(m=>{const c=cluster(m,row,inF);c.N=N;N.cl.push(c);});
-N.cl.forEach(c=>c.mem.forEach(id=>{if(id[0]!=='?')owner[id]=N;lvl[id]=row;}));
+N.cl.forEach(c=>c.mem.forEach(id=>{if(id[0]!=='?'&&id[0]!=='~')owner[id]=N;lvl[id]=row;}));
 N.line=N.cl.some(c=>lin.has(c.main));
 N.cl.forEach(c=>{
 if(!c.open&&(c.real.length||c.kids.length))hs=1;
@@ -274,7 +280,7 @@ else{
 const sk=k=>isAsuh(k)?1e8:k in pin?pin[k]:yr(k);
 g.list.sort((a,b)=>sk(a)-sk(b));
 const kidInF=inF||c.main===f;
-g.list.forEach(k=>{let nn=owner[k];if(!nn){nn=mk([k],row+1,kidInF);nn.by=N;}g.ents.push({c:k,n:nn,asuh:isAsuh(k)});gm[k]=[c.main,g.key];});
+g.list.forEach(k=>{let nn=owner[k];if(nn){const x=nn.cl.find(q=>q.main!==k&&q.mem.includes(k));if(x&&cons(x.main,k))CF.push(x.main+'|'+k);if(c.shs.some(q=>parOf(k).includes(q)))return;}if(!nn){nn=mk([k],row+1,kidInF);nn.by=N;}g.ents.push({c:k,n:nn,asuh:isAsuh(k)});gm[k]=[c.main,g.key,rid(g.key)];});
 }
 N.groups.push(g);
 });
@@ -282,12 +288,12 @@ N.groups.push(g);
 N.pill=N.cl.some(c=>!c.open?(c.real.length||c.kids.length):N.groups.some(g=>g.c===c&&!g.open));
 return N;};
 const mainOf=set=>set.slice().sort((a,b)=>spOf(b).length-spOf(a).length||rk(a)-rk(b))[0];
-const build=()=>{owner={};lvl={};nodes=[];hs=0;Object.keys(gm).forEach(k=>delete gm[k]);
+const build=()=>{owner={};lvl={};nodes=[];hs=0;CF.length=0;Object.keys(gm).forEach(k=>delete gm[k]);
 if(pm)return[mk([PI.apex],0,false)];
 if(!tops.length)return[mk([f],0,false)];
 const rows=[];tops.forEach(t=>{if(!rows.includes(t.row))rows.push(t.row);});
 return rows.map(row=>mk(uniq(tops.filter(t=>t.row===row).map(t=>mainOf(t.set))),row,false));};
-let roots=build();
+let roots=build();if(CF.length){CF.forEach(x=>SHD.add(x));roots=build();}
 if(!owner[f]){tops.length=0;roots=build();}
 const meas=N=>{if(N.done)return;N.done=1;
 let x=0;N.cl.forEach((c,i)=>{c.x0=x;x+=c.uw+(i<N.cl.length-1?GG:0);});N.uw=x;
@@ -319,34 +325,36 @@ const areas=[];
 nodes.forEach(N=>{if(!N.placed)return;const vis=N.vis||[];
 vis.forEach(g=>{const es=g.ents.filter(e=>!e.asuh);if(es.length>=2||(es.length&&vis.length>1))areas.push({k:1,fk:g.c.main===f,row:es[0].n.row,...box(uniq(es.flatMap(e=>uids(e.n))))});});
 N.cl.forEach(c=>{const ents=vis.filter(g=>g.c===c).flatMap(g=>g.ents),wk=uniq(ents.map(e=>e.n)).filter(n=>(n.vis||[]).length);
-if(wk.length>=2){const gk=uniq(wk.flatMap(n=>n.vis.flatMap(g=>g.ents.map(e=>e.n))));areas.push({k:2,row:gk[0].row,...box(uniq(gk.flatMap(uids)))});}});
+if(false&&wk.length>=2){const gk=uniq(wk.flatMap(n=>n.vis.flatMap(g=>g.ents.map(e=>e.n))));areas.push({k:2,row:gk[0].row,...box(uniq(gk.flatMap(uids)))});}});
 });
-nodes.forEach(N=>{if(!N.placed)return;N.cl.forEach(c=>{if(c.main===f){const ids=[...c.mem.filter(i=>i[0]!=='?'),...(N.vis||[]).filter(g=>g.c===c).flatMap(g=>g.ents.filter(e=>!e.asuh).map(e=>e.c))];if(ids.length>1)areas.push({k:0,row:N.row,...box(ids)});}else if(!pm&&lin.has(c.main))areas.push({k:3,row:N.row,...box(c.mem.filter(i=>i[0]!=='?'))});});});
+const cov=new Set();nodes.forEach(N=>(N.vis||[]).forEach(g=>{const es=g.ents.filter(e=>!e.asuh);if(es.length>=2||(es.length&&N.vis.length>1))es.forEach(e=>cov.add(e.n));}));
+nodes.forEach(N=>{if(!N.placed)return;N.cl.forEach(c=>{if(c.main===f){const ids=[...c.mem.filter(i=>i[0]!=='?'),...(N.vis||[]).filter(g=>g.c===c).flatMap(g=>g.ents.filter(e=>!e.asuh).flatMap(e=>e.n.cl.flatMap(q=>q.main===e.c?q.mem.filter(i=>i[0]!=='?'):[])))];if(ids.length>1)areas.push({k:0,row:N.row,...box(ids)});}else if(!pm&&lin.has(c.main)&&!cov.has(N))areas.push({k:3,row:N.row,...box(c.mem.filter(i=>i[0]!=='?'))});});});
 return{pos,nodes,roots,gm,areas,cw:Math.max(...ids.map(i=>pos[i].x))+W+pad,ch:Math.max(...ids.map(i=>pos[i].rowY))+H+pad+(hs?44:0),W,H,V,GS,PI,pm,lvl,frow:pos[f].row};
 }
 const sub=p=>p.ghost?'':p.u?'belum diketahui':p.w?(p.y||'?')+' – '+p.w:(p.ap?'±':'')+(p.y||'tahun ?');
 function tree(){
 const L=layout(),{pos,nodes,roots,areas,W,H,V,GS,PI,pm,lvl,frow}=L;let sv='',hl='',cd='',bd='';
 const SP=16,LV=22,cx=i=>pos[i].x+W/2,isOn=i=>pm&&PI.on.has(i),SIc={},si=id=>id in SIc?SIc[id]:(SIc[id]=sibInfo(id));
-const PAT={adopsi:'10 5',tiri:'2 5',wali:'10 4 2 4'};let LN2=0;
+const PAT={adopsi:'10 5',tiri:'2 5',wali:'10 4 2 4'};let LN2=0;const ML={};
 const sa=l=>(l&&PAT[l.t]?` stroke-dasharray="${PAT[l.t]}"${l.t==='tiri'?' stroke-linecap="round"':''}`:'')+(l&&l.pend?' class="pd"':'');
 const lt=(k,mem)=>S.par.find(l=>l.c===k&&mem.includes(l.p)&&l.t!=='biologis')||S.par.find(l=>l.c===k&&mem.includes(l.p));
 const nrm=(a,b)=>[-Math.sign(b[1]-a[1]),Math.sign(b[0]-a[0])];
 const off=(p,d)=>p.map((q,i)=>{let sx=0,sy=0;if(i>0){const n=nrm(p[i-1],q);sx+=n[0];sy+=n[1];}if(i<p.length-1){const n=nrm(q,p[i+1]);sx+=n[0];sy+=n[1];}return[q[0]+d*sx,q[1]+d*sy];});
 const pth=p=>p.map((q,i)=>(i?'L':'M')+q[0]+' '+q[1]).join('');
-const LY=a=>a.k===2?0:a.k===3?2:a.k===0?3:a.fk?4:1,PD={0:[18,30],1:[10,12],2:[26,22],3:[6,6]};areas.slice().sort((a,b)=>LY(a)-LY(b)).forEach(a=>{const[pd,up]=PD[a.k],x=a.x1-pd,y=a.y1-pd-up,w=a.x2-a.x1+pd*2,h=a.y2-a.y1+pd*2+up,z=(((a.row-frow)%2)+2)%2===0?'zp':'zb';bd+=`<div class="ar ${z} a${a.k}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>`;});
+const LY=a=>a.k===2?0:a.k===3?2:a.k===0?3:a.fk?4:1,PD={0:[18,10],1:[10,12],2:[26,22],3:[6,6]};areas.slice().sort((a,b)=>LY(a)-LY(b)).forEach(a=>{const[pd,up]=PD[a.k],x=a.x1-pd,y=a.y1-pd-up,w=a.x2-a.x1+pd*2,h=a.y2-a.y1+pd*2+up,z=(((a.row-frow)%2)+2)%2===0?'zp':'zb';bd+=a.k===0?`<svg class="ar" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;overflow:visible" aria-hidden="true"><rect x="2" y="2" width="${w-4}" height="${h-4}" rx="18" fill="none" stroke="#F0A04B" stroke-width="4" stroke-dasharray="0 12" stroke-linecap="round"/></svg>`:`<div class="ar ${z} a${a.k}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>`;});
 // garis pasangan: mulai dari samping kotak. Pasangan berikutnya lewat di atas kotak pasangan yang lebih dekat, lalu turun di celah
 nodes.forEach(N=>{if(!N.placed)return;N.cl.forEach(c=>{const qm=pos[c.main],rowY=qm.rowY,mid=rowY+H/2;
-c.sps.forEach((s,i)=>{const k=i+1,qs=pos[s],ghost=s[0]==='?',link=ghost?{t:'?'}:lnk(c.main,s),t=link.t||'menikah';
+c.sps.forEach((s,i)=>{const k=i+1,qs=pos[s],ghost=s[0]==='?',link=ghost?{t:'?'}:lnk(c.main,rid(s)),t=link.t||'menikah';
 const mE=c.left?qm.x:qm.x+W,sE=c.left?qs.x+W:qs.x;let pts,chx,chy;
 if(k===1){pts=[[mE,mid],[sE,mid]];chx=(mE+sE)/2;chy=mid-26;}
 else{const pv=pos[c.sps[i-1]],pE=c.left?pv.x:pv.x+W,gx=(pE+sE)/2,yy=rowY-16-(k-2)*LV;pts=[[mE,yy],[gx,yy],[gx,mid],[sE,mid]];chx=pv.x+W/2;chy=yy-8;}
+ML[c.main+'|'+s]='M'+pts[0][0]+' '+pts[0][1]+(k===1?'H'+(mE+sE)/2:'H'+pts[1][0]+'V'+mid);
 sv+=`<path d="${pth(off(pts,3))}${pth(off(pts,-3))}"${ghost?' stroke-dasharray="6 5"':''}${link.pend?' class="pd"':''}/>`;
 if(t==='cerai')cd+=`<span class="lc" style="left:${chx}px;top:${chy}px">✕ Cerai${link.y?' '+link.y:''}</span>`;
 });});});
 // garis ke anak: satu garis bagi per pasangan, tiap tingkat berjarak cukup untuk tombol lipat
 nodes.forEach(N=>{if(!N.placed)return;const vis=N.vis;
-vis.forEach((g,gi)=>{const rowY=pos[g.c.main].rowY,ax=N.ul+g.ax,ay=rowY+g.ay,yb=rowY+H+30+(vis.length-1-gi)*GS,mem=[g.c.main,g.key].filter(Boolean);
+vis.forEach((g,gi)=>{const rowY=pos[g.c.main].rowY,ax=N.ul+g.ax,ay=rowY+g.ay,yb=rowY+H+30+(vis.length-1-gi)*GS,mem=[g.c.main,rid(g.key)].filter(Boolean);
 if(N.stack){const col=N.cols[gi],sx=N.ul+col.sx,lastN=g.ents[g.ents.length-1].n,lastY=pos[lastN.cl[0].main].rowY+H/2;
 sv+=`<path d="M${ax} ${ay}V${yb}H${sx}V${lastY}"/>`;
 g.ents.forEach(e=>{const cy=pos[e.n.cl[0].main].rowY+H/2,lf=Math.min(...e.n.cl[0].mem.map(i=>pos[i].x));sv+=`<path d="M${sx} ${cy}H${lf}"${sa(lt(e.c,mem))}/>`;if((isOn(e.c)&&isOn(g.c.main))||S.sel===e.c||S.sel===g.c.main)hl+=`<path d="M${ax} ${ay}V${yb}H${sx}V${cy}H${lf}"/>`;});
@@ -354,6 +362,7 @@ g.ents.forEach(e=>{const cy=pos[e.n.cl[0].main].rowY+H/2,lf=Math.min(...e.n.cl[0
 const xs=[ax,...g.ents.map(e=>cx(e.c))];
 sv+=`<path d="M${ax} ${ay}V${yb}M${Math.min(...xs)} ${yb}H${Math.max(...xs)}"/>`;
 g.ents.forEach(e=>{sv+=`<path d="M${cx(e.c)} ${yb}V${pos[e.c].y}"${sa(lt(e.c,mem))}/>`;if((isOn(e.c)&&isOn(g.c.main))||S.sel===e.c||S.sel===g.c.main)hl+=`<path d="M${ax} ${ay}V${yb}H${cx(e.c)}V${pos[e.c].y}"/>`;});}
+if(ML[g.c.main+'|'+g.key]&&isOn(g.c.main)&&g.ents.some(e=>isOn(e.c)))hl+=`<path d="${ML[g.c.main+'|'+g.key]}"/>`;
 cd+=`<button class="tg" data-act="col" data-id="g:${g.c.main}|${g.key}" aria-label="Lipat anak" style="left:${ax}px;top:${yb}px">−</button>`;
 });
 N.cl.forEach(c=>{const q=pos[c.main];
@@ -371,15 +380,15 @@ if(b&&lnk(ps[0],ps[1])&&a.rowY===b.rowY){const l1=a.x<b.x?a:b,r1=a.x<b.x?b:a;ax=
 const yc=q.y-10-(LN2++%4)*8,xc=cx(c)+22;sv+=`<path d="M${ax} ${ay}V${yc}H${xc}V${q.y}" stroke-dasharray="${PAT[t]||'6 4'}"${t==='tiri'?' stroke-linecap="round"':''}/>`;});});
 // tombol tambah leluhur ke atas
 if(!pm){roots.forEach(r=>r.cl.forEach(c=>{c.mem.filter(i=>i[0]!=='?'&&pp(i).length).forEach(i=>{const q=pos[i];cd+=`<button class="col" data-act="up" data-id="1" aria-label="Tambah leluhur" style="left:${cx(i)-52}px;top:${q.y-44}px;width:104px">▴ leluhur</button>`;});}));
-if(S.up>0)cd+=`<button class="col" data-act="up" data-id="-1" aria-label="Kurangi leluhur" style="left:24px;top:6px;width:104px">▾ tutup</button>`;}
+if(S.up>0){const r0=-(1+S.up),ms=Object.keys(pos).filter(i=>i[0]!=='?'&&pos[i].row===r0&&pp(i).length);(ms.length?ms:[null]).forEach(i=>{cd+=`<button class="col" data-act="up" data-id="-1" aria-label="Kurangi leluhur" style="left:${i?cx(i)-52:24}px;top:${i?pos[i].y-44:6}px;width:104px">▾ tutup</button>`;});}}
 const ptag={};S.par.filter(l=>l.c===S.focus&&l.t!=='biologis').forEach(l=>{ptag[l.p]={adopsi:'Ortu angkat',tiri:'Ortu tiri',wali:'Ortu wali'}[l.t];});
 Object.entries(pos).forEach(([id,q])=>{const p=P(id),rl=S.par.find(l=>l.c===id&&l.t!=='biologis'),isA=pm&&id===S.anchor,pth2=pm&&isOn(id)&&!isA;
 const KA={biologis:'kandung',adopsi:'angkat',tiri:'tiri',wali:'asuh'},KP={biologis:'kandung',adopsi:'angkat',tiri:'tiri',wali:'wali'};
 let top='';if(S.sel&&!pm){const own=S.par.find(l=>l.c===S.sel&&l.p===id),kid=S.par.filter(l=>l.c===id&&l.p===S.sel)[0];if(id===S.sel){const ls=S.par.filter(l=>l.c===id);if(ls.length)top='Anak '+KA[(ls.find(l=>l.t!=='biologis')||ls[0]).t];}else if(kid)top='Anak '+KA[kid.t];else if(own)top='Ortu '+KP[own.t];}
 if(isA)top='Acuan';else if(pth2){const d=lvl[id]-lvl[S.anchor];top=d<0?`${-d} gen. di atas`:d>0?`${d} gen. di bawah`:'Segenerasi';}
-const cl=['card',id===S.focus&&'f',p.pend&&'p',p.u&&'u',p.ghost&&'gh',id===S.sel&&'sel',isA&&'ank',pth2&&'pth',S.hint&&S.hint.has(id)&&'hint'].filter(Boolean).join(' ');
+const cl=['card',id===S.focus&&'f',p.pend&&'p',p.u&&'u',(p.ghost||p.shadow)&&'gh',id===S.sel&&'sel',isA&&'ank',pth2&&'pth',S.hint&&S.hint.has(id)&&'hint'].filter(Boolean).join(' ');
 const sb=p.ghost?null:si(id),tg=[rl&&id!==S.focus&&(TG[rl.t]||rl.t),ptag[id]].filter(Boolean).join(', ');
-cd+=`<button class="${cl}" data-act="sel" data-id="${id}" style="left:${q.x}px;top:${q.y}px;width:${W}px;height:${q.h}px"><span>${esc(p.n)}</span><small>${p.ghost?'':p.g==='L'?'<b class="sx m" aria-label="Laki-laki">♂</b> ':p.g==='P'?'<b class="sx f" aria-label="Perempuan">♀</b> ':''}${p.pend?'Menunggu':sub(p)}</small>${sb?`<em class="no" title="Anak ke-${sb.n} dari ${sb.N}">${sb.n}</em>`:''}${top?`<em class="tag">${top}</em>`:''}${tg?`<em class="tag bt">${tg}</em>`:''}</button>`;});
+cd+=`<button class="${cl}" data-act="${p.shadow?'jump':'sel'}" data-id="${p.shadow||id}" data-k="${id}" style="left:${q.x}px;top:${q.y}px;width:${W}px;height:${q.h}px"><span>${esc(p.n)}</span><small>${p.ghost?'':p.g==='L'?'<b class="sx m" aria-label="Laki-laki">♂</b> ':p.g==='P'?'<b class="sx f" aria-label="Perempuan">♀</b> ':''}${p.shadow?'↗ kartu asli':p.pend?'Menunggu':sub(p)}</small>${sb?`<em class="no" title="Anak ke-${sb.n} dari ${sb.N}">${sb.n}</em>`:''}${top?`<em class="tag">${top}</em>`:''}${tg?`<em class="tag bt">${tg}</em>`:''}</button>`;});
 sv=hop(sv,sv);hl=hop(hl,sv);
 const stg=$('#stage');stg.style.cssText=`width:${L.cw}px;height:${L.ch}px;transform:translate(${S.x}px,${S.y}px) scale(${S.z});transform-origin:0 0`;
 stg.innerHTML=bd+`<svg width="${L.cw}" height="${L.ch}" aria-hidden="true">${sv}<g class="hl">${hl}</g></svg>`+cd;
@@ -420,7 +429,7 @@ ${sb?`<div class="m"><b>Anak ke-${sb.n} dari ${sb.N}</b> (urut tahun lahir)</div
 function shForm(){const f=S.form,p=P(f.of),e=f.k==='edit',pd=e?S.role==='contributor':willPend(f.k);
 return `<div class="rw"><div class="t">${e?(S.role==='owner'?'Ubah data ':'Ajukan perubahan ')+esc(p.n):'Tambah '+LB[f.k]+' untuk '+esc(p.n)}</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>
 ${f.kids&&f.kids.length>1?`<div class="m">Berlaku untuk ${f.kids.length} anak: ${f.kids.map(k=>esc(P(k).n)).join(', ')}</div>`:''}<label for="fn">Nama utama</label><input id="fn" value="${esc(f.name)}" autocomplete="off">
-<label>Jenis kelamin (opsional)</label><div class="cr">${[['L','Laki-laki'],['P','Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(f.g||'')===v?' on':''}" data-act="gd" data-id="${v}" aria-pressed="${(f.g||'')===v}"${gDis(f,v)?' disabled':''}>${l}</button>`).join('')}</div><div class="m">Hanya dipakai untuk urutan pasangan di pohon.${f.k==='parent'&&f.ty==='biologis'&&bioG(f.of)?' Orang tua kandung kedua harus lawan jenis dari yang pertama.':''}${f.k==='edit'&&reqG(f.of)?' Terkunci: orang ini orang tua kandung, jadi harus lawan jenis dari orang tua kandung lain pada anaknya.':''}</div>
+<label>Jenis kelamin (opsional)</label><div class="cr">${[['L','<b class="sx m" aria-hidden="true">♂</b> Laki-laki'],['P','<b class="sx f" aria-hidden="true">♀</b> Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(f.g||'')===v?' on':''}" data-act="gd" data-id="${v}" aria-pressed="${(f.g||'')===v}"${gDis(f,v)?' disabled':''}>${l}</button>`).join('')}</div><div class="m">Hanya dipakai untuk urutan pasangan di pohon.${f.k==='parent'&&f.ty==='biologis'&&bioG(f.of)?' Orang tua kandung kedua harus lawan jenis dari yang pertama.':''}${f.k==='edit'&&reqG(f.of)?' Terkunci: orang ini orang tua kandung, jadi harus lawan jenis dari orang tua kandung lain pada anaknya.':''}</div>
 ${f.k==='spouse'?`<label>Status hubungan</label><div class="cr">${[['menikah','Menikah'],['cerai','Cerai']].map(([v,l])=>`<button class="ch${f.ss===v?' on':''}" data-act="ss" data-id="${v}" aria-pressed="${f.ss===v}">${l}</button>`).join('')}</div>`:''}
 <label for="fy">Tahun lahir (opsional)</label><div class="rw"><input id="fy" inputmode="numeric" value="${esc(f.year)}"><button class="ch${f.ap?' on':''}" data-act="apx" aria-pressed="${!!f.ap}">Perkiraan</button></div>
 <label for="fw">Tahun wafat (opsional, kosongkan jika masih hidup)</label><input id="fw" inputmode="numeric" value="${esc(f.dyear||'')}">
@@ -501,6 +510,10 @@ return `<div class="rw"><div class="t">Hapus ${esc(p.n)}?</div><button class="x"
 const tlist=()=>{const q=(S.tq||'').trim().toLowerCase(),a=S.sel,r=Object.keys(S.people).filter(i=>i!==a&&!P(i).pend&&P(i).n.toLowerCase().includes(q)).sort((x,y)=>P(x).n.localeCompare(P(y).n,'id'));return r.length?r.map(i=>`<button class="ex" data-act="tpick" data-id="${i}">${esc(P(i).n)}<small>${P(i).y||'tahun ?'}</small></button>`).join(''):'<div class="m" style="padding:8px">Tidak ada hasil.</div>';};
 function shTrace(){const a=S.sel;
 return `<div class="rw"><div class="t">Telusuri hubungan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+(S.tr?`<div class="rw"><div class="m">Dari <b>${esc(P(a).n)}</b> ke <b>${esc(P(S.tr).n)}</b></div><button class="ch" data-act="tchg">Ganti</button></div>`+tracePath(a,S.tr)+'<button class="b o2" data-act="tshow">Tampilkan jalur di pohon</button>':`<label for="tq">Dari <b>${esc(P(a).n)}</b> ke (cari nama, urut A–Z)</label><input id="tq" type="search" autocomplete="off" value="${esc(S.tq||'')}"><div id="tl" class="c" style="padding:4px;max-height:260px;overflow:auto">${tlist()}</div>`);}
+function snap(){const m={};document.querySelectorAll('#stage .card[data-k]').forEach(e=>{m[e.dataset.k]=[parseFloat(e.style.left),parseFloat(e.style.top)];});$('#stage').classList.add('gl');return{m,x:S.x,y:S.y,z:S.z};}
+function glide(o){const st=$('#stage'),rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,els=[...st.querySelectorAll('.card[data-k]')];
+if(!rm)els.forEach(e=>{const p=o.m[e.dataset.k];if(p){const dx=((o.x+p[0]*o.z)-(S.x+parseFloat(e.style.left)*S.z))/S.z,dy=((o.y+p[1]*o.z)-(S.y+parseFloat(e.style.top)*S.z))/S.z;if(Math.abs(dx)+Math.abs(dy)>1){e.style.transform=`translate(${dx}px,${dy}px)`;e.dataset.g='1';}}else{e.style.opacity='0';e.dataset.g='1';}});
+void st.offsetWidth;els.forEach(e=>{if(e.dataset.g){e.style.transition='transform .35s ease,opacity .35s ease';e.style.transform='';e.style.opacity='';}});st.classList.remove('gl');}
 $('#app').addEventListener('click',e=>{
 if(mv>6&&e.target.closest('#vp')){mv=0;return;}
 const el=e.target.closest('[data-act]');if(!el)return;
@@ -530,8 +543,8 @@ case'rcancel':S.rej=null;hdr();break;
 case'okw':sync();f.okw=true;save();break;
 case'nw':f.warn=null;sheet();break;
 case'role':S.role=id;hdr();sheet();break;
-case'col':{const pid=id.slice(2).split('|')[0],o=layout().pos[pid];if(S.tog.has(id))S.tog.delete(id);else S.tog.add(id);const L=tree(),n=L.pos[pid];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}break;}
-case'up':{const o=layout().pos[S.focus];S.up=Math.max(0,S.up+(+id));const L=tree(),n=L.pos[S.focus];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}break;}
+case'col':{const sn=snap(),pid=id.slice(2).split('|')[0],o=layout().pos[pid];if(S.tog.has(id))S.tog.delete(id);else S.tog.add(id);const L=tree(),n=L.pos[pid];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}glide(sn);break;}
+case'up':{const sn=snap(),o=layout().pos[S.focus];S.up=Math.max(0,S.up+(+id));const L=tree(),n=L.pos[S.focus];if(o&&n){S.x+=(o.x-n.x)*S.z;S.y+=(o.y-n.y)*S.z;ap();}glide(sn);break;}
 case'me':S.focus=S.me;S.path=false;S.tog.clear();S.hint=null;S.up=0;S.z=.9;done();sheet();ctr(tree());break;
 case'loc':{const q=S.props.find(r=>r.id===+id);if(!q||!q.at)break;S.path=false;S.tog.clear();S.focus=q.at.find(i=>P(i))||S.focus;S.hint=new Set(q.at);tab('pohon');clearTimeout(hT);hT=setTimeout(()=>{S.hint=null;tree();},8000);toast('Posisi ditandai kuning di pohon');break;}
 case'path':{if(S.path){S.path=false;S.tog.clear();}else if(S.focus===S.anchor){toast('Fokus sama dengan acuan');break;}else if(!pathInfo(S.focus,S.anchor)){toast('Tidak ada jalur keturunan. Pakai Telusuri hubungan.');break;}else{S.path=true;S.tog.clear();}ctr(tree());break;}
@@ -545,6 +558,7 @@ case'ex':{const e=EX[+id],o=e[2],hs=typeof o.h==='function'?o.h():o.h;S.path=!!o
 /*DEV:end*/
 case'ts':setTs(+id);break;
 case'lang':setLang(id);break;
+case'jump':{S.hint=new Set([id]);const L=tree(),q=L.pos[id];if(q){const st=$('#stage');S.x=vp.clientWidth/2-(q.x+L.W/2)*S.z;S.y=vp.clientHeight/2-(q.y+L.H/2)*S.z;st.style.transition='transform .45s ease';void st.offsetWidth;ap();setTimeout(()=>{st.style.transition='';},500);}clearTimeout(hT);hT=setTimeout(()=>{S.hint=null;tree();},4000);break;}
 case'gd':sync();f.g=id;sheet();break;
 case'ss':sync();f.ss=id;sheet();break;
 case'zin':zoom(.15);break;
@@ -559,7 +573,7 @@ function fsIcon(){const b=$('#fsb');b.innerHTML=S.fs?FSI('M9 4v5H4M15 4v5h5M9 20
 function setFs(v){S.fs=v;$('#app').classList.toggle('fsm',v);fsIcon();requestAnimationFrame(()=>ctr(tree()));}
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&S.fs)setFs(false);});
 // keterangan garis (P0-6)
-const LEG=[['Orang tua dan anak, kandung','<path d="M2 8H58"/>'],['Adopsi','<path d="M2 8H58" stroke-dasharray="10 5"/>'],['Tiri','<path d="M2 8H58" stroke-dasharray="2 5" stroke-linecap="round"/>'],['Anak asuh, orang tua wali','<path d="M2 8H58" stroke-dasharray="10 4 2 4"/>'],['Menikah, pasangan sekarang paling dekat','<path d="M2 5H58M2 11H58"/>'],['Cerai, mantan di ujung, garis ganda lewat atas kartu','<path d="M2 13H12V4H42V13H58" stroke-width="3"/>'],['Menunggu persetujuan','<rect x="2" y="1" width="22" height="14" rx="4" stroke-width="3" stroke-dasharray="4 3" class="pdx"/><path d="M28 8H58" stroke-width="5" class="pdx"/>']];
+const LEG=[['Orang tua dan anak, kandung','<path d="M2 8H58"/>'],['Adopsi','<path d="M2 8H58" stroke-dasharray="10 5"/>'],['Tiri','<path d="M2 8H58" stroke-dasharray="2 5" stroke-linecap="round"/>'],['Anak asuh, orang tua wali','<path d="M2 8H58" stroke-dasharray="10 4 2 4"/>'],['Menikah, pasangan sekarang paling dekat','<path d="M2 5H58M2 11H58"/>'],['Cerai: label ✕ Cerai di atas garis, mantan lebih jauh dari pasangan sekarang','<path d="M2 10H58M2 15H58"/><path d="M26 1l7 6M33 1l-7 6"/>'],['Pasangan kedua dan seterusnya: garis ganda lewat di atas kartu pasangan yang lebih dekat','<path d="M2 9H9V2H49V9H58M2 15H15V8H43V15H58"/>'],['Menunggu persetujuan','<rect x="2" y="1" width="22" height="14" rx="4" stroke-width="3" stroke-dasharray="4 3" class="pdx"/><path d="M28 8H58" stroke-width="5" class="pdx"/>']];
 function initPanels(){
 $('#ktp').innerHTML='<div class="h">Legend garis</div>'+LEG.map(([t,d])=>`<div class="lr"><svg width="60" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${d}</svg><span>${t}</span></div>`).join('')+'<div class="h" style="margin-top:6px">Legend kotak</div><div class="lr"><em class="no" style="position:static">3</em><span>Anak ke-3 dari orang tuanya (urut tahun lahir)</span></div><div class="lr"><b>1935 – 1999</b><span>Tahun lahir – tahun wafat</span></div><div class="lr"><b class="sx m">♂</b><span>Laki-laki</span><b class="sx f" style="margin-left:14px">♀</b><span>Perempuan</span></div><div class="lr"><em class="tag bt" style="position:static;transform:none">Adopsi</em><span>Jenis hubungan ke orang tua</span></div>';
 /*DEV:start*/
@@ -584,7 +598,8 @@ const EX=[
 ['Saudara di samping fokus, area sepupu','Ahmad Fauzi Rahman dan saudara, sepupu kiri dan kanan',{f:'a',h:['a']}],
 ['Sepupu seayah (dari istri kedua Hasan Basri)','Cucu Hasan Basri dan Marni Lestari',{f:'a',h:()=>chOf('h').filter(c=>parOf(c).includes('mn')).flatMap(chOf)}],
 ['Sepupu seibu (pernikahan pertama Fatimah Zahra)','Cucu Fatimah Zahra dan Rahmat Hidayat',{f:'a',h:()=>chOf('sm')}],
-['Jalur ke acuan, sepupu terlihat','Dari Ibrahim Basri ke Ahmad Fauzi Rahman',{f:'ib',h:['a'],p:1,c:'h'}]];
+['Jalur ke acuan, sepupu terlihat','Dari Ibrahim Basri ke Ahmad Fauzi Rahman',{f:'ib',h:['a'],p:1,c:'h'}],
+['Sepupu menikah: kartu bayangan','Dedi Lestari dan Gita Lestari, cucu Yusuf dan Fatimah',{f:'dl',h:['dl','gl']}]];
 /*DEV:end*/
 initPanels();fsIcon();
 
@@ -603,7 +618,7 @@ en:{'Pohon':'Tree','Beranda':'Home','Persetujuan':'Approval','Keterangan':'Legen
 'Pilih pohon keluarga yang mau dibuka':'Choose a family tree to open','Buka pohon ›':'Open tree ›','Buat pohon baru':'Create new tree','Gabung undangan':'Join via invitation','Belum tersedia di prototipe':'Not available in the prototype yet',
 'Anggota dan akses':'Members and access','Audit log':'Audit log','Backup dan ekspor':'Backup and export','Ekspor JSON':'Export JSON','Akun':'Account','MFA: aktif':'MFA: on','Pengaturan tampilan':'Display settings','Ukuran teks':'Text size','Bahasa':'Language',
 'Hubungan belum ditemukan atau belum tercatat. Itu bukan berarti mereka tidak berkerabat.':'Relationship not found or not recorded yet. That does not mean they are unrelated.','Ajukan penambahan hubungan':'Propose adding a relationship','Telusuri':'Trace',
-'Belum ada aktivitas. Coba edit pohon.':'No activity yet. Try editing the tree.','Nama wajib diisi':'Name is required','Alasan wajib diisi':'Reason is required','Perubahan tersimpan':'Changes saved','Tersimpan':'Saved'},
+'Belum ada aktivitas. Coba edit pohon.':'No activity yet. Try editing the tree.','Nama wajib diisi':'Name is required','Alasan wajib diisi':'Reason is required','Perubahan tersimpan':'Changes saved','Tersimpan':'Saved','↗ kartu asli':'↗ original card'},
 rx:{en:[[/^(\d+) menunggu$/,'$1 pending'],[/^Halo, (.+)$/,'Hello, $1'],[/^Menunggu persetujuan \((\d+)\)$/,'Awaiting approval ($1)'],[/^Riwayat \((\d+)\)$/,'History ($1)'],[/^(\d+) perubahan menunggu persetujuan$/,'$1 changes awaiting approval'],[/^▸ (\d+) anak$/,'▸ $1 children'],[/^Anak ke-(\d+) dari (\d+)/,'Child $1 of $2']],id:[]}};
 const orig=new WeakMap();
 const trs=(b,l)=>{const t=b.trim();if(!t)return b;let r=D[l][t];if(r==null)for(const[a,c]of D.rx[l]||[])if(a.test(t)){r=t.replace(a,c);break;}return r==null?b:b.replace(t,r);};
