@@ -45,6 +45,7 @@ h1{font-size:calc(20px*var(--ts,1));margin:0}
 .card.dim{opacity:.7}
 .tag{position:absolute;left:50%;top:-10px;transform:translateX(-50%);font-style:normal;font-size:calc(10px*var(--ts,1));font-weight:700;line-height:1;padding:3px 8px;border-radius:999px;background:var(--sub);color:var(--onsub);border:1px solid var(--onsub);white-space:nowrap}
 .tag.bt{top:auto;bottom:-10px;background:var(--card);color:var(--ink);border-color:var(--line)}
+.tag.bt[data-act]{cursor:pointer}.tag.bt[data-act]::after{content:'';position:absolute;inset:-10px}
 .lc{position:absolute;transform:translateX(-50%);font-size:calc(10px*var(--ts,1));font-weight:700;line-height:1;padding:3px 7px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--ink);white-space:nowrap;pointer-events:none}
 #stage svg .hl{stroke:var(--acc);stroke-width:5}
 #stage svg .pd{stroke:var(--pend);stroke-width:4}
@@ -192,7 +193,7 @@ chOf('h').filter(c=>parOf(c).includes('mn')).forEach(i=>fill(i,3));
 chOf('h').filter(c=>c!=='k'&&parOf(c).includes('ik')).slice(0,2).forEach(i=>fill(i,3));
 chOf('y').filter(c=>c!=='am'&&parOf(c).includes('f')).slice(0,2).forEach(i=>fill(i,3));
 fill('sm',3);
-const FN=n=>Object.keys(S.people).find(i=>S.people[i].n===n);{const d=FN('Dedi Lestari'),g=FN('Gita Lestari');if(d&&g)S.sp.push({a:d,b:g,t:'menikah',y:'1990'});}
+const FN=n=>Object.keys(S.people).find(i=>S.people[i].n===n);{const d=FN('Dedi Lestari'),g=FN('Gita Lestari');if(d&&g){S.sp.push({a:d,b:g,t:'menikah',y:'1990'});mk([d,g],2,1992);}}
 const TL={biologis:'kandung',adopsi:'adopsi',tiri:'tiri',wali:'wali'},SL={menikah:'menikah',cerai:'cerai'},SL2={cerai:'Cerai'},TG={adopsi:'Adopsi',tiri:'Tiri',wali:'Anak asuh'};
 const bioOnly=id=>{const ls=S.par.filter(l=>l.c===id);return ls.length>0&&ls.every(l=>l.t==='biologis');};
 const sibInfo=id=>{if(!bioOnly(id))return null;const k=parOf(id).slice().sort().join('+');const g=Object.keys(S.people).filter(c=>bioOnly(c)&&parOf(c).slice().sort().join('+')===k).sort((a,b)=>(+P(a).y||9999)-(+P(b).y||9999));return{n:g.indexOf(id)+1,N:g.length};};
@@ -225,7 +226,16 @@ const px=up(x),pa=up(a);let best=null;
 Object.keys(px).forEach(c=>{if(c in pa){const A=chain(px,x,c),B=chain(pa,a,c),d=A.length+B.length;if(!best||d<best.d)best={d,c,A,B};}});
 return best?{apex:best.c,on:new Set([...best.A,...best.B])}:null;
 }
-function layout(shp){
+// garis tambahan orang tua non-kandung: titik awal dan apakah terlalu jauh untuk digambar
+const xlines=L=>{const{pos,gm,W,H}=L,o=[];Object.keys(pos).forEach(c=>{const gmm=gm[c];if(!gmm)return;const by={};
+S.par.filter(l=>l.c===c&&l.t!=='biologis'&&pos[l.p]&&!gmm.includes(l.p)).forEach(l=>{(by[l.t]=by[l.t]||[]).push(l.p);});
+Object.entries(by).forEach(([t,ps])=>{const q=pos[c],a=pos[ps[0]],b=ps[1]&&pos[ps[1]];let ax,ay;
+if(b&&lnk(ps[0],ps[1])&&a.rowY===b.rowY){const l1=a.x<b.x?a:b,r1=a.x<b.x?b:a;ax=(l1.x+W+r1.x)/2;ay=a.rowY+H/2;}else{ax=a.x+W/2;ay=a.rowY+H;}
+const xc=q.x+W/2+22;o.push({c,t,ps,ax,ay,xc,far:c!==S.focus&&(q.row-a.row>1||Math.abs(ax-xc)>3*W)});});});return o;};
+// kartu yang tertembus garis wali: kartu itu (dan kartu di kanannya pada baris yang sama) digeser ke kanan supaya ada lajur kosong
+const blk=L=>{const{pos,W}=L,r={};xlines(L).filter(o=>!o.far).forEach(o=>{const q=pos[o.c];Object.entries(pos).forEach(([i,z])=>{if(i===o.c||o.ps.includes(i))return;if(z.y+z.h>o.ay&&z.y<q.y-36&&o.ax>z.x-10&&o.ax<z.x+W+10)r[i]=Math.max(r[i]||0,o.ax+14-z.x);});});return r;};
+function layout(shp){let P={},L=layout0(shp,P);for(let k=0;k<4;k++){const b=blk(L),ks=Object.keys(b);if(!ks.length)break;P={...P};ks.forEach(i=>P[i]=(P[i]||0)+2*b[i]);L=layout0(shp,P);}return L;}
+function layout0(shp,PD){PD=PD||{};
 // Pasangan: laki-laki di kiri, perempuan di kanan, pasangan sekarang paling dekat, mantan lebih jauh.
 // Leluhur di atas (bisa ditambah), saudara dan sepupu di samping, anak dikelompokkan per pasangan, anak daun ditumpuk vertikal.
 const TS=S.ts,W=Math.round(120*TS),H=Math.round(64*TS),G=24,GW=72,GP=32,GG=64,V=124,SG=14,SP=16,LV=22,GS=34,pad=24,f=S.focus;
@@ -249,7 +259,7 @@ const bio1=chOf(main).some(c=>{const b=bioOf(c);return b.length===1&&b[0]===main
 if(open&&bio1){const gid='?'+main;GH[gid]={n:'Pasangan belum diketahui',g:gr(main)==='L'?'P':gr(main)==='P'?'L':'',ghost:1};sps=[...sps,gid];}
 const left=gr(main)==='P',mem=left?[...sps].reverse().concat(main):[main,...sps],mi=mem.indexOf(main);
 const near=sps[0],exNear=near&&near[0]!=='?'&&(lnk(main,rid(near)).t||'menikah')!=='menikah';
-const off=[];let x=0;mem.forEach((q,i)=>{off.push(x);x+=W;if(i<mem.length-1){const a=mem[i],b=mem[i+1];x+=(exNear&&((a===main&&b===near)||(b===main&&a===near)))?GW:G;}});
+const off=[];let x=0;mem.forEach((q,i)=>{x+=PD[q]||0;off.push(x);x+=W;if(i<mem.length-1){const a=mem[i],b=mem[i+1];x+=(exNear&&((a===main&&b===near)||(b===main&&a===near)))?GW:G;}});
 const n=sps.length,ext=n>=2?24+(n-2)*LV:0;
 const anchor=key=>{if(!key)return{ax:off[mi]+W/2,ay:H};const k=sps.indexOf(key)+1,j=left?mi-k:mi+k;
 if(k===1)return{ax:left?(off[j]+W+off[mi])/2:(off[mi]+W+off[j])/2,ay:H/2};
@@ -327,14 +337,14 @@ if(false&&wk.length>=2){const gk=uniq(wk.flatMap(n=>n.vis.flatMap(g=>g.ents.map(
 });
 const cov=new Set();nodes.forEach(N=>(N.vis||[]).forEach(g=>{const es=g.ents.filter(e=>!e.asuh);if(es.length>=2||(es.length&&N.vis.length>1))es.forEach(e=>cov.add(e.n));}));
 nodes.forEach(N=>{if(!N.placed)return;N.cl.forEach(c=>{if(c.main===f){const ids=[...c.mem.filter(i=>i[0]!=='?'),...(N.vis||[]).filter(g=>g.c===c).flatMap(g=>g.ents.filter(e=>!e.asuh).flatMap(e=>e.n.cl.flatMap(q=>q.main===e.c?q.mem.filter(i=>i[0]!=='?'):[])))];if(ids.length>1)areas.push({k:0,row:N.row,...box(ids)});}else if(!pm&&lin.has(c.main)&&!cov.has(N))areas.push({k:3,row:N.row,...box(c.mem.filter(i=>i[0]!=='?'))});});});
-if(!shp){const far=CFX.filter(o=>!o.rel&&pos[o.k]&&pos[o.pm]&&Math.abs(pos[o.k].x-pos[o.pm].x)>W*8).flatMap(o=>[o.key,o.key.split('|').reverse().join('|')]);if(far.length)return layout(new Set([...SHD,...far]));}
+if(!shp){const far=CFX.filter(o=>!o.rel&&pos[o.k]&&pos[o.pm]&&Math.abs(pos[o.k].x-pos[o.pm].x)>W*8).flatMap(o=>[o.key,o.key.split('|').reverse().join('|')]);if(far.length)return layout0(new Set([...SHD,...far]),PD);}
 return{pos,nodes,roots,gm,areas,cw:Math.max(...ids.map(i=>pos[i].x))+W+pad,ch:Math.max(...ids.map(i=>pos[i].rowY))+H+pad+(hs?44:0),W,H,V,GS,PI,pm,lvl,frow:pos[f].row};
 }
 const sub=p=>p.ghost?'':p.u?'belum diketahui':p.w?(p.y||'?')+' – '+p.w:(p.ap?'±':'')+(p.y||'tahun ?');
 function tree(){
 const L=layout(),{pos,nodes,roots,areas,W,H,V,GS,PI,pm,lvl,frow}=L;let sv='',hl='',cd='',bd='';
 const SP=16,LV=22,cx=i=>pos[i].x+W/2,isOn=i=>pm&&PI.on.has(i),SIc={},si=id=>id in SIc?SIc[id]:(SIc[id]=sibInfo(id));
-const PAT={adopsi:'10 5',tiri:'2 5',wali:'10 4 2 4'};let LN2=0;const ML={};
+const PAT={adopsi:'10 5',tiri:'2 5',wali:'10 4 2 4'};let LN2=0;const ML={},FARP={};
 const sa=l=>(l&&PAT[l.t]?` stroke-dasharray="${PAT[l.t]}"${l.t==='tiri'?' stroke-linecap="round"':''}`:'')+(l&&l.pend?' class="pd"':'');
 const lt=(k,mem)=>S.par.find(l=>l.c===k&&mem.includes(l.p)&&l.t!=='biologis')||S.par.find(l=>l.c===k&&mem.includes(l.p));
 const nrm=(a,b)=>[-Math.sign(b[1]-a[1]),Math.sign(b[0]-a[0])];
@@ -372,11 +382,9 @@ else N.groups.filter(g=>g.c===c&&!g.open).forEach(g=>{const ax=N.ul+g.ax;cd+=`<b
 });
 });
 // garis tambahan untuk orang tua non-kandung yang tidak berada di grup anak (tiri, wali, angkat)
-Object.keys(pos).forEach(c=>{const gmm=L.gm[c];if(!gmm)return;const by={};
-S.par.filter(l=>l.c===c&&l.t!=='biologis'&&pos[l.p]&&!gmm.includes(l.p)).forEach(l=>{(by[l.t]=by[l.t]||[]).push(l.p);});
-Object.entries(by).forEach(([t,ps],ti)=>{const q=pos[c],a=pos[ps[0]],b=ps[1]&&pos[ps[1]];let ax,ay;
-if(b&&lnk(ps[0],ps[1])&&a.rowY===b.rowY){const l1=a.x<b.x?a:b,r1=a.x<b.x?b:a;ax=(l1.x+W+r1.x)/2;ay=a.rowY+H/2;}else{ax=cx(ps[0]);ay=a.rowY+H;}
-const yc=q.y-10-(LN2++%4)*8,xc=cx(c)+22;sv+=`<path d="M${ax} ${ay}V${yc}H${xc}V${q.y}" stroke-dasharray="${PAT[t]||'6 4'}"${t==='tiri'?' stroke-linecap="round"':''}/>`;});});
+xlines(L).forEach(o=>{const{c,t,ps,ax,ay,xc}=o,q=pos[c];if(o.far){FARP[c]=ps[0];return;}
+const yc=q.y-36-(LN2++%3)*6;
+sv+=`<path d="M${ax} ${ay}V${yc}H${xc}V${q.y}" stroke-dasharray="${PAT[t]||'6 4'}"${t==='tiri'?' stroke-linecap="round"':''}/>`;});
 // tombol tambah leluhur ke atas
 if(!pm){roots.forEach(r=>r.cl.forEach(c=>{c.mem.filter(i=>i[0]!=='?'&&pp(i).length).forEach(i=>{const q=pos[i];cd+=`<button class="col" data-act="up" data-id="1" data-for="${i}" aria-label="Tambah leluhur" style="left:${cx(i)-52}px;top:${q.y-44}px;width:104px">▴ leluhur</button>`;});}));
 if(S.up>0){const r0=-(1+S.up),ms=Object.keys(pos).filter(i=>i[0]!=='?'&&pos[i].row===r0&&pp(i).length);(ms.length?ms:[null]).forEach(i=>{cd+=`<button class="col" data-act="up" data-id="-1" data-for="${i||''}" aria-label="Kurangi leluhur" style="left:${i?cx(i)+10:24}px;top:${i?pos[i].y-44:6}px;width:104px">▾ tutup</button>`;});}}
@@ -387,7 +395,7 @@ let top='';if(S.sel&&!pm){const own=S.par.find(l=>l.c===S.sel&&l.p===id),kid=S.p
 if(isA)top='Acuan';else if(pth2){const d=lvl[id]-lvl[S.anchor];top=d<0?`${-d} gen. di atas`:d>0?`${d} gen. di bawah`:'Segenerasi';}
 const cl=['card',id===S.focus&&'f',p.pend&&'p',p.u&&'u',(p.ghost||p.shadow)&&'gh',id===S.sel&&'sel',isA&&'ank',pth2&&'pth',S.hint&&S.hint.has(id)&&'hint'].filter(Boolean).join(' ');
 const sb=p.ghost?null:si(id),tg=[rl&&id!==S.focus&&(TG[rl.t]||rl.t),ptag[id]].filter(Boolean).join(', ');
-cd+=`<button class="${cl}" data-act="${p.shadow?'jump':'sel'}" data-id="${p.shadow||id}" data-k="${id}" style="left:${q.x}px;top:${q.y}px;width:${W}px;height:${q.h}px"><span>${esc(p.n)}</span><small>${p.ghost?'':p.g==='L'?'<b class="sx m" aria-label="Laki-laki">♂</b> ':p.g==='P'?'<b class="sx f" aria-label="Perempuan">♀</b> ':''}${p.shadow?'↗ kartu asli':p.pend?'Menunggu':sub(p)}</small>${sb?`<em class="no" title="Anak ke-${sb.n} dari ${sb.N}">${sb.n}</em>`:''}${top?`<em class="tag">${top}</em>`:''}${tg?`<em class="tag bt">${tg}</em>`:''}</button>`;});
+cd+=`<button class="${cl}" data-act="${p.shadow?'jump':'sel'}" data-id="${p.shadow||id}" data-k="${id}" style="left:${q.x}px;top:${q.y}px;width:${W}px;height:${q.h}px"><span>${esc(p.n)}</span><small>${p.ghost?'':p.g==='L'?'<b class="sx m" aria-label="Laki-laki">♂</b> ':p.g==='P'?'<b class="sx f" aria-label="Perempuan">♀</b> ':''}${p.shadow?'↗ kartu asli':p.pend?'Menunggu':sub(p)}</small>${sb?`<em class="no" title="Anak ke-${sb.n} dari ${sb.N}">${sb.n}</em>`:''}${top?`<em class="tag">${top}</em>`:''}${tg?`<em class="tag bt"${FARP[id]?` data-act="jump" data-id="${FARP[id]}"`:''}>${tg}${FARP[id]?' ↗':''}</em>`:''}</button>`;});
 sv=hop(sv,sv);hl=hop(hl,sv);
 const stg=$('#stage');stg.style.cssText=`width:${L.cw}px;height:${L.ch}px;transform:translate(${S.x}px,${S.y}px) scale(${S.z});transform-origin:0 0`;
 stg.innerHTML=bd+`<svg width="${L.cw}" height="${L.ch}" aria-hidden="true">${sv}<g class="hl">${hl}</g></svg>`+cd;
@@ -608,7 +616,7 @@ const EX=[
 ['Sepupu seayah (dari istri kedua Hasan Basri)','Cucu Hasan Basri dan Marni Lestari',{f:'a',h:()=>chOf('h').filter(c=>parOf(c).includes('mn')).flatMap(chOf)}],
 ['Sepupu seibu (pernikahan pertama Fatimah Zahra)','Cucu Fatimah Zahra dan Rahmat Hidayat',{f:'a',h:()=>chOf('sm')}],
 ['Jalur ke acuan, sepupu terlihat','Dari Ibrahim Basri ke Ahmad Fauzi Rahman',{f:'ib',h:['a'],p:1,c:'h'}],
-['Menikah antar keluarga jauh: kartu bayangan','Dedi Lestari (anak Budi Saputra) dan Gita Lestari (anak Hadi Lestari), letaknya jauh kiri dan kanan',{f:'a',t:['u:'+FN('Dedi Lestari'),'u:'+FN('Gita Lestari')],h:()=>[FN('Dedi Lestari'),FN('Gita Lestari')]}]];
+['Menikah antar keluarga jauh: kartu bayangan','Dedi Lestari (anak Budi Saputra) dan Gita Lestari (anak Hadi Lestari), letaknya jauh kiri dan kanan',{f:'a',t:['u:'+FN('Dedi Lestari'),'u:'+FN('Gita Lestari')],h:()=>[FN('Dedi Lestari'),FN('Gita Lestari'),...chOf(FN('Dedi Lestari'))]}]];
 /*DEV:end*/
 initPanels();fsIcon();
 
