@@ -17,6 +17,7 @@ export const SESSION_COOKIE = '__Host-ft_session';
 export const OAUTH_COOKIE = '__Host-ft_oauth';
 export const SESSION_DAYS = 30; // [Menebak]
 export const OAUTH_TTL = 600;
+export const APP_PATH = '/app'; // tujuan setelah login = public/app.html (Workers Assets melayani file .html tanpa ekstensi; /app.html dialihkan 307 ke /app)
 const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
@@ -54,7 +55,7 @@ const redirect = (location, cookies = []) => {
   for (const c of cookies) h.append('set-cookie', c);
   return new Response(null, { status: 302, headers: h });
 };
-const failTo = (reason) => redirect(`/?auth_error=${reason}`, [setCookie(OAUTH_COOKIE, '', 0)]);
+const failTo = (reason) => redirect(`${APP_PATH}?auth_error=${reason}`, [setCookie(OAUTH_COOKIE, '', 0)]);
 
 // ---- mulai login ----
 async function start(request, env) {
@@ -167,7 +168,7 @@ async function callback(request, env, { now, fetchFn }) {
   if (!g.verified) return failTo('email_not_verified');
   const r = await login(env.DB, g, now);
   if (!r.ok) return failTo(r.reason);
-  return redirect('/', [setCookie(OAUTH_COOKIE, '', 0), setCookie(SESSION_COOKIE, r.token, SESSION_DAYS * 86400)]);
+  return redirect(APP_PATH, [setCookie(OAUTH_COOKIE, '', 0), setCookie(SESSION_COOKIE, r.token, SESSION_DAYS * 86400)]);
 }
 
 // ---- sesi berjalan ----

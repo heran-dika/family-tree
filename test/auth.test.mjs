@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { freshDb } from './helpers/d1.mjs';
-import { OAUTH_COOKIE, SESSION_COOKIE, SESSION_DAYS, getSession, handleAuth } from '../src/auth.js';
+import { APP_PATH, OAUTH_COOKIE, SESSION_COOKIE, SESSION_DAYS, getSession, handleAuth } from '../src/auth.js';
 import { sha256Hex } from '../src/invitations.js';
 import worker from '../src/index.js';
 
@@ -99,7 +99,7 @@ test('callback sukses (akun baru): akun dibuat huruf kecil, sesi tersimpan sebag
   const e = env();
   const { res, b, f } = await login(e);
   assert.equal(res.status, 302);
-  assert.equal(res.headers.get('location'), '/');
+  assert.equal(res.headers.get('location'), APP_PATH);
   const [a] = e.accounts();
   assert.deepEqual({ email: a.email, v: a.email_verified, sub: a.google_sub, n: a.display_name, lang: a.language }, { email: 'budi@x.com', v: 1, sub: 'g-1', n: 'Budi Santoso', lang: 'id' });
   const token = val(find(res, SESSION_COOKIE));
@@ -133,7 +133,7 @@ test('menaut ke akun yang sudah ada: hanya bila emailnya terverifikasi, tanpa ak
   const e = env();
   e.sqlite.exec("INSERT INTO accounts(id,email,email_verified) VALUES ('u1','budi@x.com',1)");
   const r = await login(e);
-  assert.equal(r.res.headers.get('location'), '/');
+  assert.equal(r.res.headers.get('location'), APP_PATH);
   assert.deepEqual(e.accounts().map((a) => [a.id, a.google_sub]), [['u1', 'g-1']]);
   assert.equal(e.sessions()[0].account_id, 'u1');
 
@@ -204,7 +204,7 @@ test('ID token yang tidak valid ditolak: aud, iss, kedaluwarsa, nonce, sub, emai
   }
   for (const [label, over] of [['aud larik berisi kita', { aud: ['lain', CID] }], ['iss tanpa skema', { iss: 'accounts.google.com' }], ['verified teks "true"', { email_verified: 'true' }]]) {
     const e = env();
-    assert.equal((await login(e, { claims: over })).res.headers.get('location'), '/', label);
+    assert.equal((await login(e, { claims: over })).res.headers.get('location'), APP_PATH, label);
   }
   const e = env();
   const un = await login(e, { claims: { email_verified: false } });
@@ -315,7 +315,7 @@ test('balapan dua login pertama: yang kalah mencari ulang akun yang baru dibuat,
     return real(sql);
   };
   const r = await login(e);
-  assert.equal(r.res.headers.get('location'), '/');
+  assert.equal(r.res.headers.get('location'), APP_PATH);
   assert.deepEqual(e.accounts().map((a) => a.id), ['menang']);
   assert.deepEqual(e.sessions().map((s) => s.account_id), ['menang']);
 });

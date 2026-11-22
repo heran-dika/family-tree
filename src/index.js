@@ -1,3 +1,4 @@
+import { handleApi } from './api.js';
 import { handleAuth } from './auth.js';
 
 const json = (body, status = 200) =>
@@ -21,6 +22,9 @@ export default {
 
     const auth = await handleAuth(request, env);
     if (auth) return auth;
+
+    const api = await handleApi(request, env);
+    if (api) return api;
 
     return json({ error: 'not_found' }, 404);
   },
