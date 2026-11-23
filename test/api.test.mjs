@@ -84,7 +84,7 @@ test('buat pohon lewat API: 201, lalu muncul di daftar; kedua kali 409 tree_limi
   assert.deepEqual(l.trees, [{ id: r.tree.id, name: 'Keluarga Ahmad', role: 'owner' }]);
   assert.deepEqual(await J(await call(e, '/api/trees', { method: 'POST', body: { name: 'Lagi', selfName: 'X' } })), { status: 409, ok: false, code: 'tree_limit' });
   assert.deepEqual(await J(await call(e, '/api/trees', { who: 'u2', method: 'POST', body: { name: '', selfName: 'X' } })), { status: 400, ok: false, code: 'name_required' });
-  assert.deepEqual(await J(await call(e, '/api/trees', { who: 'u2' })), { status: 200, trees: [] });
+  assert.deepEqual(await J(await call(e, '/api/trees', { who: 'u2' })), { status: 200, trees: [], pending: [] });
 });
 
 test('isi pohon: anggota boleh, orang luar 403, id tidak ada 403, tidak ada data pohon lain', async () => {
@@ -198,5 +198,5 @@ test('router utama: jalur pohon terpasang, health tetap jalan, jalur lain 404', 
   assert.deepEqual(await (await w('/api/health')).json(), { ok: true, trees: 0 });
   assert.equal((await w('/api/lain')).status, 404);
   const r = await w('/api/trees', { headers: { cookie: `${SESSION_COOKIE}=${TOK.u1}` } });
-  assert.deepEqual(await r.json(), { trees: [] });
+  assert.deepEqual(await r.json(), { trees: [], pending: [] });
 });
