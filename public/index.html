@@ -578,7 +578,7 @@ const post=(path,body)=>http(path,{method:'POST',body:JSON.stringify(body)});
 async function change(kind,after,target){const r=await post('/api/trees/'+S.tid+'/changes',{kind,targetPersonId:target||null,after});if(!r.j.ok)throw{code:r.j.code||'error'};return r.j;}
 function adopt(j){
 S.people={};S.par=[];S.sp=[];
-j.people.forEach(p=>{S.people[p.id]={n:p.name,y:p.birth.year!=null?String(p.birth.year):'',ap:p.birth.precision==='approx',w:p.death.year!=null?String(p.death.year):'',c:p.confirmation==='confirmed'?1:0,g:p.gender==='male'?'L':p.gender==='female'?'P':'',u:p.isPlaceholder?1:0,ph:p.isPlaceholder?1:0,bd:p.birth.precision==='full'&&p.birth.date?p.birth.date:'',wd:p.death.precision==='full'&&p.death.date?p.death.date:''};});
+j.people.forEach(p=>{S.people[p.id]={n:p.name,y:p.birth.year!=null?String(p.birth.year):'',ap:p.birth.precision==='approx',w:p.death.year!=null?String(p.death.year):'',c:p.confirmation==='confirmed'?1:0,g:p.gender==='male'?'L':p.gender==='female'?'P':'',u:p.isPlaceholder?1:0,ph:p.isPlaceholder?1:0,bd:mdate(p.birth),wd:mdate(p.death)};});
 j.parentChild.forEach(e=>S.par.push({c:e.child,p:e.parent,t:ID_T[e.type]||'biologis'}));
 j.partnerships.forEach(s=>{const y=s.startYear!=null?s.startYear:s.endYear;const o={a:s.a,b:s.b,t:s.status==='divorced'||s.status==='separated'?'cerai':'menikah'};if(y!=null)o.y=String(y);if(o.t==='cerai'&&s.endYear!=null)o.ya=String(s.endYear);S.sp.push(o);});
 S.role=j.role;S.boot=j.bootstrap;S.me=j.me;S.tid=j.tree.id;S.tname=j.tree.name;}
@@ -628,6 +628,7 @@ const mg=()=>loadMgmt().then(()=>hdr()).catch(()=>{});
 const gUrl=t=>location.origin+'/app#login='+t;
 async function guestMake(){if(S.busy)return;const n=(S.gn||'').trim();if(!n){toast('Isi nama orangnya dulu');return;}S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/guests',{name:n,role:S.gr||'viewer'});
+if(!r.j.ok&&!r.j.code){toast('Server belum punya fitur ini. Upload backend terbaru (zip login-link).');return;}
 if(r.j.ok){S.glink={url:gUrl(r.j.token),name:n};S.gn='';await loadMgmt();hdr();toast('Link dibuat. Kirim sekarang, hanya tampil sekali.');}else toast(r.j.code==='too_many_guests'?'Batas anggota tanpa email tercapai':(ERR[r.j.code]||errMsg({code:r.j.code})));}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 async function guestRe(aid){const m=(S.mem||[]).find(x=>x.accountId===aid);if(!m||S.busy)return;
@@ -696,8 +697,8 @@ catch(e){toast(errMsg(e));try{await reload();tree();}catch(x){}}
 finally{S.busy=false;}}
 function personFields(f){const o={display_name:f.name};if(f.g==='L')o.gender='male';else if(f.g==='P')o.gender='female';
 const y=(f.year||'').trim(),w=(f.dyear||'').trim();
-if(y){const b=(f.bmo&&f.bda)?y+'-'+f.bmo+'-'+f.bda:y;o.birth_date=b;o.birth_precision=b.length===10?'full':f.ap?'approx':'year';}
-if(w){const d=(f.dd&&f.wmo&&f.wda)?w+'-'+f.wmo+'-'+f.wda:w;o.death_date=d;o.death_precision=d.length===10?'full':'year';}return o;}
+if(y){const b=dtv(y,f.bmo,f.bda,f.ap);o.birth_date=b;o.birth_precision=dtp(b,f.ap);}
+if(w){const d=f.dd?dtv(w,f.wmo,f.wda,false):w;o.death_date=d;o.death_precision=dtp(d,false);}return o;}
 async function findDup(f){const y=(f.year||'').trim();
 const r=await http('/api/trees/'+S.tid+'/duplicates?name='+encodeURIComponent(f.name)+(yearOk(y)?'&birth_year='+y:''));
 const c=(r.j.candidates||[]).find(x=>S.people[x.id]);return r.status===200&&c?c.id:null;}
@@ -720,20 +721,23 @@ if(f.k==='edit'){await doEdit();return;}
 if(!f.skip){f.dup=null;S.busy=true;let d=null;try{d=await findDup(f);}catch(x){}finally{S.busy=false;}if(d){f.dup=d;sheet();return;}}
 await commit(null,true);}
 // hanya field yang berubah yang dikirim: tanggal lahir yang disembunyikan dari penonton tidak boleh terhapus oleh penyuntingan nama
+const dtv=(y,m,d,ap)=>!y?'':(m&&d)?y+'-'+m+'-'+d:(m&&!ap)?y+'-'+m:y;
+const dtp=(v,ap)=>v.length===10?'full':ap?'approx':'year';
+const mdate=b=>b.precision==='full'&&b.date?b.date:(b.precision==='year'&&b.month&&b.year!=null)?b.year+'-'+String(b.month).padStart(2,'0'):'';
 async function doEdit(){
 const f=S.form,id=f.of,p=P(id),a={};
 if(f.name!==p.n)a.display_name=f.name;
 const g=f.g||'';if(g!==(p.g||''))a.gender=g==='L'?'male':g==='P'?'female':null;
-const y=(f.year||'').trim(),by=(f.bmo&&f.bda&&y)?y+'-'+f.bmo+'-'+f.bda:y,ob=p.bd&&p.bd.length===10?p.bd:(p.y||''),fb=by.length===10;
-if(by!==ob||(!fb&&y&&!!f.ap!==!!p.ap)){if(y){a.birth_date=by;a.birth_precision=fb?'full':f.ap?'approx':'year';}else{a.birth_date=null;a.birth_precision='unknown';}}
-const w=(f.dyear||'').trim(),wy=(f.dd&&f.wmo&&f.wda&&w)?w+'-'+f.wmo+'-'+f.wda:w,ow=p.wd&&p.wd.length===10?p.wd:(p.w||'');
-if(wy!==ow){if(w){a.death_date=wy;a.death_precision=wy.length===10?'full':'year';}else{a.death_date=null;a.death_precision='unknown';}}
+const y=(f.year||'').trim(),by=dtv(y,f.bmo,f.bda,f.ap),ob=p.bd||(p.y||''),fb=by.length===10;
+if(by!==ob||(!fb&&y&&!!f.ap!==!!p.ap)){if(y){a.birth_date=by;a.birth_precision=dtp(by,f.ap);}else{a.birth_date=null;a.birth_precision='unknown';}}
+const w=(f.dyear||'').trim(),wy=f.dd?dtv(w,f.wmo,f.wda,false):w,ow=p.wd||(p.w||'');
+if(wy!==ow){if(w){a.death_date=wy;a.death_precision=dtp(wy,false);}else{a.death_date=null;a.death_precision='unknown';}}
 if(!!f.c!==!!p.c)a.confirmation=f.c?'confirmed':'unverified';
 // BACKEND-TODO "Isi identitas" (placeholder): belum tahu apakah person_edit boleh mengosongkan is_placeholder, jadi tidak dikirim.
 // BACKEND-TODO perubahan di bawah ini belum punya aksi di server (hanya ada action:'create'), jadi tidak disimpan:
 const parCh=Object.values(f.par||{}).some(d=>d.sA!==d.cA||d.sI!==d.cI);
 const cpCh=Object.entries(f.cpe||{}).some(([ri,c])=>{const r=S.sp[+ri],ch={t:c.t,...rout(c,c.t==='cerai')};return !(ch.t===(r.t||'menikah')&&ch.y===(r.y||'')&&ch.yd===(r.yd||'')&&ch.ya===(r.ya||'')&&ch.yad===(r.yad||''));});
-const NA=((parCh||cpCh?'Ubah orang tua dan hubungan pasangan belum tersambung ke server.':'')+(((f.bmo&&!f.bda)||(f.dd&&f.wmo&&!f.wda))?' Bulan tanpa tanggal belum bisa disimpan, hanya tahun.':'')).trim();
+const NA=((parCh||cpCh?'Ubah orang tua dan hubungan pasangan belum tersambung ke server.':'')).trim();
 if(!Object.keys(a).length){toast(NA||'Tidak ada perubahan');return;}
 await run(async()=>{const r=await change('person_edit',a,id);return r.warnings;},NA?'Data orang tersimpan. '+NA:'Perubahan tersimpan');}
 async function commit(id,isNew){

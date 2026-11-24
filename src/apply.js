@@ -78,7 +78,7 @@ export function cleanFields(after, { create = false } = {}) {
       if (date !== null) return fail(`invalid_${d}`);
     } else if (prec === 'full') {
       if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !validDay(date)) return fail(`invalid_${d}`);
-    } else if (typeof date !== 'string' || !/^\d{4}$/.test(date)) {
+    } else if (typeof date !== 'string' || !(prec === 'year' ? /^\d{4}(-(0[1-9]|1[0-2]))?$/ : /^\d{4}$/).test(date)) {
       return fail(`invalid_${d}`);
     }
   }

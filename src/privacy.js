@@ -70,7 +70,9 @@ function shape(date, precision, level) {
   const year = yearOf(date);
   if (year === null) return UNKNOWN;
   if (precision === 'full' && FULL_DATE.test(date) && level === 'full') return { precision: 'full', year, date };
-  return { precision: precision === 'approx' ? 'approx' : 'year', year, date: null };
+  // tahun + bulan disimpan sebagai presisi 'year' dengan date 'YYYY-MM'; bulan hanya tampil bila tingkatnya 'full'
+  const month = precision === 'year' && level === 'full' && /^\d{4}-\d{2}$/.test(date) ? Number(date.slice(5)) : null;
+  return { precision: precision === 'approx' ? 'approx' : 'year', year, date: null, ...(month ? { month } : {}) };
 }
 
 // Profil untuk ditampilkan. Mengembalikan null bila penonton bukan anggota.

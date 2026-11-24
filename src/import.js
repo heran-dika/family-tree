@@ -16,7 +16,7 @@ const MAX_ID = 64;
 const isObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const TOP = ['format', 'version', 'exportedAt', 'tree', 'people', 'nameVariants', 'parentChild', 'partnerships'];
 const PERSON = ['id', 'name', 'nickname', 'gender', 'confirmation', 'sourceNote', 'isPlaceholder', 'placeholderOf', 'archived', 'birth', 'death'];
-const DATE_KEYS = ['precision', 'year', 'date'];
+const DATE_KEYS = ['precision', 'year', 'date', 'month'];
 const PRECISIONS = ['full', 'year', 'approx', 'unknown', 'hidden'];
 
 export function validateImport(input, { now = new Date() } = {}) {
@@ -73,8 +73,9 @@ export function validateImport(input, { now = new Date() } = {}) {
       if (typeof date !== 'string' || !Number.isInteger(year) || String(year) !== date.slice(0, 4)) { err(path, 'invalid_date'); return null; }
       return { date, precision };
     }
-    if (!Number.isInteger(year) || date !== null) { err(path, 'invalid_date'); return null; }
-    return { date: String(year), precision };
+    const mo = x.month ?? null;
+    if (!Number.isInteger(year) || date !== null || (mo !== null && !(precision === 'year' && Number.isInteger(mo) && mo >= 1 && mo <= 12))) { err(path, 'invalid_date'); return null; }
+    return { date: mo ? `${year}-${String(mo).padStart(2, '0')}` : String(year), precision };
   };
   rawPeople.forEach((r, i) => {
     const path = `people[${i}]`;
