@@ -18,9 +18,9 @@ async function gate(db, treeId, actorId) {
 export async function listMembers(db, { treeId, actorId }) {
   if (!(await gate(db, treeId, actorId))) return fail('forbidden');
   const rows = await forTree(db, treeId).all(
-    "SELECT m.account_id, m.role, m.created_at, a.display_name, a.email FROM memberships m JOIN accounts a ON a.id = m.account_id WHERE m.tree_id = ?1 AND m.status = 'active' ORDER BY CASE m.role WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 WHEN 'contributor' THEN 2 ELSE 3 END, a.display_name, m.account_id"
+    "SELECT m.account_id, m.role, m.created_at, a.display_name, a.email, a.login_link FROM memberships m JOIN accounts a ON a.id = m.account_id WHERE m.tree_id = ?1 AND m.status = 'active' ORDER BY CASE m.role WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 WHEN 'contributor' THEN 2 ELSE 3 END, a.display_name, m.account_id"
   );
-  return { ok: true, members: rows.map((r) => ({ accountId: r.account_id, name: r.display_name || r.email.split('@')[0], email: r.email, role: r.role, since: r.created_at, self: r.account_id === actorId })) };
+  return { ok: true, members: rows.map((r) => ({ accountId: r.account_id, name: r.display_name || 'Anggota', email: r.login_link ? null : r.email, guest: r.login_link === 1, role: r.role, since: r.created_at, self: r.account_id === actorId })) };
 }
 
 async function target(db, treeId, actorId, accountId, allowed) {

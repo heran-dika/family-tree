@@ -21,6 +21,7 @@
 import { getSession } from './auth.js';
 import { applyDirect } from './apply.js';
 import { accessCodeStatus, createAccessCode, decideJoinRequest, listJoinRequests, lookupAccessCode, myJoinRequests, requestJoin, revokeAccessCode } from './access.js';
+import { createGuest, guestLogin, reissueGuest } from './guest.js';
 import { listMembers, removeMember, setMemberRole } from './members.js';
 import { findDuplicates } from './duplicates.js';
 import { exportTree } from './export.js';
@@ -35,10 +36,10 @@ const json = (body, status = 200, extra = {}) =>
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...extra },
   });
 
-const NOT_FOUND = ['not_found', 'target_not_found', 'person_not_found', 'partnership_not_found', 'edge_not_found', 'invalid_code'];
+const NOT_FOUND = ['invalid_link', 'not_found', 'target_not_found', 'person_not_found', 'partnership_not_found', 'edge_not_found', 'invalid_code'];
 const CONFLICT = [
   'tree_limit', 'needs_proposal', 'duplicate_partnership', 'duplicate_edge', 'would_create_cycle', 'blocked_bootstrap',
-  'already_member', 'already_pending', 'too_many_pending', 'request_limit', 'join_failed', 'not_pending',
+  'too_many_guests', 'already_member', 'already_pending', 'too_many_pending', 'request_limit', 'join_failed', 'not_pending',
 ];
 export const statusOf = (code) =>
   code === 'forbidden' ? 403 : NOT_FOUND.includes(code) ? 404 : CONFLICT.includes(code) ? 409 : 400;
@@ -72,6 +73,9 @@ const ROUTES = [
   [/^trees\/([^/]+)\/join-requests\/([^/]+)$/, ['POST'], 'decide'],
   [/^trees\/([^/]+)\/members$/, ['GET'], 'members'],
   [/^trees\/([^/]+)\/members\/([^/]+)$/, ['POST'], 'member'],
+  [/^auth\/guest$/, ['POST'], 'glogin'],
+  [/^trees\/([^/]+)\/guests$/, ['POST'], 'guests'],
+  [/^trees\/([^/]+)\/guests\/([^/]+)$/, ['POST'], 'guest'],
   [/^join\/lookup$/, ['POST'], 'lookup'],
   [/^join\/mine$/, ['GET'], 'mine'],
   [/^join$/, ['POST'], 'join'],
@@ -86,6 +90,13 @@ export async function handleApi(request, env, { now = new Date() } = {}) {
   const method = request.method;
   if (!hit.methods.includes(method)) return json({ error: 'method_not_allowed' }, 405, { allow: hit.methods.join(', ') });
 
+  if (hit.name === 'glogin') {
+    if (request.headers.get('origin') !== url.origin) return json({ ok: false, code: 'forbidden' }, 403);
+    const b0 = await body(request);
+    if (b0.bad) return json({ ok: false, code: b0.bad }, b0.status);
+    const r = await guestLogin(env.DB, { token: b0.v.token, now });
+    return r.ok ? json({ ok: true }, 200, { 'set-cookie': r.cookie }) : fail(r);
+  }
   const me = await getSession(env.DB, request, now);
   if (!me) return json({ error: 'unauthorized' }, 401);
   if (method !== 'GET' && request.headers.get('origin') !== url.origin) return json({ ok: false, code: 'forbidden' }, 403);
@@ -149,6 +160,14 @@ export async function handleApi(request, env, { now = new Date() } = {}) {
       if (b.bad) return json({ ok: false, code: b.bad }, b.status);
       return reply(await decideJoinRequest(db, { treeId: id, requestId: rid, deciderId: me.id, action: b.v.action, role: b.v.role ?? null, now }), (x) => ({ ok: true, status: x.status }));
     }
+    case 'guests': {
+      const b = await needBody();
+      if (b.bad) return json({ ok: false, code: b.bad }, b.status);
+      return reply(await createGuest(db, { treeId: id, actorId: me.id, name: b.v.name, role: b.v.role, now }), (x) => ({ ok: true, token: x.token, accountId: x.accountId }), 201);
+    }
+    case 'guest':
+      if (!ID.test(rid)) return json({ ok: false, code: 'not_found' }, 404);
+      return reply(await reissueGuest(db, { treeId: id, actorId: me.id, accountId: rid, now }), (x) => ({ ok: true, token: x.token }));
     case 'members': return reply(await listMembers(db, { treeId: id, actorId: me.id }), (x) => ({ ok: true, members: x.members }));
     case 'member': {
       if (!ID.test(rid)) return json({ ok: false, code: 'not_found' }, 404);

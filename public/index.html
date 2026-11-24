@@ -578,7 +578,7 @@ const post=(path,body)=>http(path,{method:'POST',body:JSON.stringify(body)});
 async function change(kind,after,target){const r=await post('/api/trees/'+S.tid+'/changes',{kind,targetPersonId:target||null,after});if(!r.j.ok)throw{code:r.j.code||'error'};return r.j;}
 function adopt(j){
 S.people={};S.par=[];S.sp=[];
-j.people.forEach(p=>{S.people[p.id]={n:p.name,y:p.birth.year!=null?String(p.birth.year):'',ap:p.birth.precision==='approx',w:p.death.year!=null?String(p.death.year):'',c:p.confirmation==='confirmed'?1:0,g:p.gender==='male'?'L':p.gender==='female'?'P':'',u:p.isPlaceholder?1:0,ph:p.isPlaceholder?1:0};});
+j.people.forEach(p=>{S.people[p.id]={n:p.name,y:p.birth.year!=null?String(p.birth.year):'',ap:p.birth.precision==='approx',w:p.death.year!=null?String(p.death.year):'',c:p.confirmation==='confirmed'?1:0,g:p.gender==='male'?'L':p.gender==='female'?'P':'',u:p.isPlaceholder?1:0,ph:p.isPlaceholder?1:0,bd:p.birth.precision==='full'&&p.birth.date?p.birth.date:'',wd:p.death.precision==='full'&&p.death.date?p.death.date:''};});
 j.parentChild.forEach(e=>S.par.push({c:e.child,p:e.parent,t:ID_T[e.type]||'biologis'}));
 j.partnerships.forEach(s=>{const y=s.startYear!=null?s.startYear:s.endYear;const o={a:s.a,b:s.b,t:s.status==='divorced'||s.status==='separated'?'cerai':'menikah'};if(y!=null)o.y=String(y);if(o.t==='cerai'&&s.endYear!=null)o.ya=String(s.endYear);S.sp.push(o);});
 S.role=j.role;S.boot=j.bootstrap;S.me=j.me;S.tid=j.tree.id;S.tname=j.tree.name;}
@@ -595,8 +595,10 @@ const lsSet=(k,v)=>{try{if(v==null)localStorage.removeItem(k);else localStorage.
 const parseCode=t=>{t=String(t||'').trim();const m=/join=([A-Za-z0-9_-]+)/.exec(t),c=m?m[1]:t;return CODE_RE.test(c)?c:'';};
 // kode dari tautan (#join=...) disimpan sebelum login Google, karena pengalihan OAuth membuang bagian setelah #
 function grabCode(){const m=/^#join=([A-Za-z0-9_-]{20,200})$/.exec(location.hash);if(m){lsSet(JK,m[1]);history.replaceState(null,'',location.pathname+location.search);}}
+async function guestIn(){const m=/^#login=([A-Za-z0-9_-]{20,200})$/.exec(location.hash);if(!m)return;history.replaceState(null,'',location.pathname+location.search);
+try{const r=await post('/api/auth/guest',{token:m[1]});if(!r.j.ok)S.authErr='guest_invalid';}catch(x){S.authErr='network';}}
 async function boot(){
-grabCode();
+await guestIn();grabCode();
 const q=new URLSearchParams(location.search),ae=q.get('auth_error');if(ae){S.authErr=ae;history.replaceState(null,'',location.pathname);}
 S.acc=undefined;hdr();
 try{const r=await http('/api/me');if(r.status===200){S.acc=r.j.account;await refreshTrees();}else S.acc=null;}catch(x){S.acc=null;S.authErr='network';}
@@ -623,6 +625,18 @@ const tid=S.tid,r=await http('/api/trees/'+tid+'/join-requests'),mr=await http('
 if(S.role==='owner'){const c=await http('/api/trees/'+tid+'/access-code');if(c.status===200)cs={active:c.j.active};}
 if(tid!==S.tid)return;S.reqs=r.status===200?r.j.requests:[];S.mem=mr.status===200?mr.j.members:[];S.codeSt=cs;}
 const mg=()=>loadMgmt().then(()=>hdr()).catch(()=>{});
+const gUrl=t=>location.origin+'/app#login='+t;
+async function guestMake(){if(S.busy)return;const n=(S.gn||'').trim();if(!n){toast('Isi nama orangnya dulu');return;}S.busy=true;
+try{const r=await post('/api/trees/'+S.tid+'/guests',{name:n,role:S.gr||'viewer'});
+if(r.j.ok){S.glink={url:gUrl(r.j.token),name:n};S.gn='';await loadMgmt();hdr();toast('Link dibuat. Kirim sekarang, hanya tampil sekali.');}else toast(r.j.code==='too_many_guests'?'Batas anggota tanpa email tercapai':(ERR[r.j.code]||errMsg({code:r.j.code})));}
+catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
+async function guestRe(aid){const m=(S.mem||[]).find(x=>x.accountId===aid);if(!m||S.busy)return;
+if(!confirm('Buat ulang link untuk '+m.name+'? HP lamanya langsung keluar dan link lama mati.'))return;S.busy=true;
+try{const r=await post('/api/trees/'+S.tid+'/guests/'+aid,{});
+if(r.j.ok){S.glink={url:gUrl(r.j.token),name:m.name};hdr();toast('Link baru dibuat. Kirim sekarang.');}else toast(ERR[r.j.code]||errMsg({code:r.j.code}));}
+catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
+async function shareG(){const l=S.glink&&S.glink.url;if(!l)return;const t='Halo '+S.glink.name+', buka link ini untuk melihat pohon keluarga: '+l;
+if(navigator.share){try{await navigator.share({text:t});}catch(x){}}else{try{await navigator.clipboard.writeText(l);toast('Link disalin');}catch(x){toast('Salin manual dari kolom link');}}}
 async function memAct(spec){const[aid,act,role]=spec.split('|');if(S.busy)return;
 const m=(S.mem||[]).find(x=>x.accountId===aid);if(!m)return;
 if(act==='remove'&&!confirm('Keluarkan '+m.name+' dari pohon ini? Profil dan relasinya tetap ada.'))return;
@@ -632,7 +646,7 @@ toast(r.j.ok?(act==='remove'?'Anggota dikeluarkan':'Peran diubah'):(ERR[r.j.code
 await loadMgmt();hdr();}catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 function memHtml(){if(!S.tid||!['owner','admin'].includes(S.role))return'';const SW=['viewer','contributor'];
 return '<div class="h">Anggota ('+(S.mem||[]).length+')</div><div class="c">'+(S.mem||[]).map(m=>{const ed=!m.self&&(SW.includes(m.role)||(S.role==='owner'&&m.role==='admin'));
-return '<div><b>'+esc(m.name)+'</b> <span class="bd2">'+(ROLE[m.role]||esc(m.role))+'</span><div class="m">'+esc(m.email)+'</div>'+(ed?'<div class="g2" style="margin-top:6px">'+(SW.includes(m.role)?SW.filter(r=>r!==m.role).map(r=>'<button class="b o2" data-act="mrole" data-id="'+m.accountId+'|role|'+r+'">Jadikan '+ROLE[r]+'</button>').join(''):'')+'<button class="b o2" data-act="mdel" data-id="'+m.accountId+'|remove" style="color:#b42318;border-color:#b42318">Keluarkan</button></div>':'')+'</div>';}).join('<hr style="border:0;border-top:1px solid var(--bd);width:100%">')+'</div>';}
+return '<div><b>'+esc(m.name)+'</b> <span class="bd2">'+(ROLE[m.role]||esc(m.role))+'</span><div class="m">'+(m.guest?'Tanpa email (login lewat link)':esc(m.email))+'</div>'+(ed?'<div class="g2" style="margin-top:6px">'+(SW.includes(m.role)?SW.filter(r=>r!==m.role).map(r=>'<button class="b o2" data-act="mrole" data-id="'+m.accountId+'|role|'+r+'">Jadikan '+ROLE[r]+'</button>').join(''):'')+(m.guest&&S.role==='owner'?'<button class="b o2" data-act="mre" data-id="'+m.accountId+'">Buat ulang link</button>':'')+'<button class="b o2" data-act="mdel" data-id="'+m.accountId+'|remove" style="color:#b42318;border-color:#b42318">Keluarkan</button></div>':'')+'</div>';}).join('<hr style="border:0;border-top:1px solid var(--bd);width:100%">')+'</div>';}
 async function decideReq(spec){
 const[rid,action,role]=spec.split('|');if(S.busy)return;S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/join-requests/'+rid,{action,role:role||null});
@@ -682,8 +696,8 @@ catch(e){toast(errMsg(e));try{await reload();tree();}catch(x){}}
 finally{S.busy=false;}}
 function personFields(f){const o={display_name:f.name};if(f.g==='L')o.gender='male';else if(f.g==='P')o.gender='female';
 const y=(f.year||'').trim(),w=(f.dyear||'').trim();
-if(y){o.birth_date=y;o.birth_precision=f.ap?'approx':'year';}
-if(w){o.death_date=w;o.death_precision='year';}return o;}
+if(y){const b=(f.bmo&&f.bda)?y+'-'+f.bmo+'-'+f.bda:y;o.birth_date=b;o.birth_precision=b.length===10?'full':f.ap?'approx':'year';}
+if(w){const d=(f.dd&&f.wmo&&f.wda)?w+'-'+f.wmo+'-'+f.wda:w;o.death_date=d;o.death_precision=d.length===10?'full':'year';}return o;}
 async function findDup(f){const y=(f.year||'').trim();
 const r=await http('/api/trees/'+S.tid+'/duplicates?name='+encodeURIComponent(f.name)+(yearOk(y)?'&birth_year='+y:''));
 const c=(r.j.candidates||[]).find(x=>S.people[x.id]);return r.status===200&&c?c.id:null;}
@@ -710,16 +724,16 @@ async function doEdit(){
 const f=S.form,id=f.of,p=P(id),a={};
 if(f.name!==p.n)a.display_name=f.name;
 const g=f.g||'';if(g!==(p.g||''))a.gender=g==='L'?'male':g==='P'?'female':null;
-const y=(f.year||'').trim();
-if(y!==(p.y||'')||(y&&!!f.ap!==!!p.ap)){if(y){a.birth_date=y;a.birth_precision=f.ap?'approx':'year';}else{a.birth_date=null;a.birth_precision='unknown';}}
-const w=(f.dyear||'').trim();
-if(w!==(p.w||'')){if(w){a.death_date=w;a.death_precision='year';}else{a.death_date=null;a.death_precision='unknown';}}
+const y=(f.year||'').trim(),by=(f.bmo&&f.bda&&y)?y+'-'+f.bmo+'-'+f.bda:y,ob=p.bd&&p.bd.length===10?p.bd:(p.y||''),fb=by.length===10;
+if(by!==ob||(!fb&&y&&!!f.ap!==!!p.ap)){if(y){a.birth_date=by;a.birth_precision=fb?'full':f.ap?'approx':'year';}else{a.birth_date=null;a.birth_precision='unknown';}}
+const w=(f.dyear||'').trim(),wy=(f.dd&&f.wmo&&f.wda&&w)?w+'-'+f.wmo+'-'+f.wda:w,ow=p.wd&&p.wd.length===10?p.wd:(p.w||'');
+if(wy!==ow){if(w){a.death_date=wy;a.death_precision=wy.length===10?'full':'year';}else{a.death_date=null;a.death_precision='unknown';}}
 if(!!f.c!==!!p.c)a.confirmation=f.c?'confirmed':'unverified';
 // BACKEND-TODO "Isi identitas" (placeholder): belum tahu apakah person_edit boleh mengosongkan is_placeholder, jadi tidak dikirim.
 // BACKEND-TODO perubahan di bawah ini belum punya aksi di server (hanya ada action:'create'), jadi tidak disimpan:
 const parCh=Object.values(f.par||{}).some(d=>d.sA!==d.cA||d.sI!==d.cI);
 const cpCh=Object.entries(f.cpe||{}).some(([ri,c])=>{const r=S.sp[+ri],ch={t:c.t,...rout(c,c.t==='cerai')};return !(ch.t===(r.t||'menikah')&&ch.y===(r.y||'')&&ch.yd===(r.yd||'')&&ch.ya===(r.ya||'')&&ch.yad===(r.yad||''));});
-const NA=parCh||cpCh?'Ubah orang tua dan hubungan pasangan belum tersambung ke server.':'';
+const NA=((parCh||cpCh?'Ubah orang tua dan hubungan pasangan belum tersambung ke server.':'')+(((f.bmo&&!f.bda)||(f.dd&&f.wmo&&!f.wda))?' Bulan tanpa tanggal belum bisa disimpan, hanya tahun.':'')).trim();
 if(!Object.keys(a).length){toast(NA||'Tidak ada perubahan');return;}
 await run(async()=>{const r=await change('person_edit',a,id);return r.warnings;},NA?'Data orang tersimpan. '+NA:'Perubahan tersimpan');}
 async function commit(id,isNew){
@@ -758,12 +772,12 @@ await run(async()=>{const r=await change('parent_child',{action:'create',child_i
 // BACKEND-TODO alur persetujuan (slider geser di tab Approval): belum ada di klien maupun server (server membalas needs_proposal)
 function resolve(){toast('Alur persetujuan belum tersambung');}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#dtn>summary'))setTimeout(()=>{const d=$('#dtn');if(d)S.dto=d.open;},0);});
-document.addEventListener('input',e=>{const i=e.target.id;if(i==='nt')S.nt=e.target.value;if(i==='ns')S.ns=e.target.value;if(i==='jc')S.jc=e.target.value;if(i==='jm')S.jm=e.target.value;});
+document.addEventListener('input',e=>{const i=e.target.id;if(i==='gn')S.gn=e.target.value;if(i==='nt')S.nt=e.target.value;if(i==='ns')S.ns=e.target.value;if(i==='jc')S.jc=e.target.value;if(i==='jm')S.jm=e.target.value;});
 
 const lg=t=>S.log.push((S.role==='owner'?'Owner':'Contributor')+': '+t);
 function views(){
 const reqs=S.reqs||[],n=S.props.length+reqs.length,hd=t=>`<div class="t" style="font-size:calc(22px*var(--ts,1))">${t}</div>`,a=S.acc;
-const AE={access_denied:'Login dibatalkan.',state_invalid:'Sesi login kedaluwarsa, coba lagi.',email_not_verified:'Email Google belum terverifikasi.',network:'Tidak bisa terhubung ke server.'};
+const AE={access_denied:'Login dibatalkan.',state_invalid:'Sesi login kedaluwarsa, coba lagi.',email_not_verified:'Email Google belum terverifikasi.',network:'Tidak bisa terhubung ke server.',guest_invalid:'Link ini sudah dipakai atau kedaluwarsa. Minta link baru ke pengelola.'};
 const LOGIN='<a class="b" href="/api/auth/google" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Masuk dengan Google</a>';
 let home;
 if(a===undefined)home='<div class="c">Memuat…</div>';
@@ -783,6 +797,7 @@ const ts=Math.round(S.ts*100),act=S.codeSt&&S.codeSt.active;
 $('#mn').innerHTML=hd('Menu')+`<div class="h">Akun</div><div class="c">${a?esc(a.email):'Belum masuk'}</div>`
 +(S.tid?`<div class="h">Pohon</div><div class="c"><b>${esc(S.tname)}</b><span class="m">Peran: ${ROLE[S.role]||''}</span>${['owner','admin'].includes(S.role)?'<button class="b o2" data-act="export">Ekspor JSON</button><div class="m">Bukan backup penuh: tanggal lahir yang tersembunyi tidak ikut.</div>':''}</div>`:'')
 +memHtml()
++(S.tid&&S.role==='owner'?`<div class="h">Undang tanpa email</div><div class="c"><div class="m">Untuk keluarga yang tidak punya akun Google. Link hanya bisa dipakai satu kali, di satu HP.</div><label for="gn">Nama orangnya</label><input id="gn" value="${esc(S.gn||'')}" maxlength="100" autocomplete="off"><div class="cr">${[['viewer','Viewer (hanya lihat)'],['contributor','Contributor (mengajukan)']].map(([v,l])=>`<button class="ch${(S.gr||'viewer')===v?' on':''}" data-act="gr" data-id="${v}" aria-pressed="${(S.gr||'viewer')===v}">${l}</button>`).join('')}</div><button class="b" data-act="gmake">Buat link</button>${S.glink?`<div class="warn"><b>Link untuk ${esc(S.glink.name)}</b> (hanya tampil sekarang)<input id="gl" readonly value="${esc(S.glink.url)}"><button class="b" data-act="gshare">Kirim / salin</button></div>`:''}</div>`:'')
 +(S.tid&&S.role==='owner'?`<div class="h">Tautan bergabung</div><div class="c"><div class="m">${act?'Tautan aktif. Siapa pun yang memegangnya bisa mengajukan bergabung, tetapi tetap Anda yang menyetujui dan memilih perannya.':'Belum ada tautan aktif.'}</div>${S.code?`<input id="lk" readonly value="${esc(linkOf())}"><div class="g2"><button class="b" data-act="copylink">Salin tautan</button><button class="b o2" data-act="sharelink">Bagikan</button></div><div class="m">Tautan hanya ditampilkan sekarang. Kalau hilang, buat tautan baru (yang lama otomatis mati).</div>`:''}<button class="b o2" data-act="mkcode">${act?'Buat tautan baru (yang lama mati)':'Buat tautan'}</button>${act?'<button class="b o2" data-act="rvcode">Cabut tautan</button>':''}</div>`:'')
 +`<div class="h">Pengaturan tampilan</div><div class="c"><div class="rw"><label for="tsr">Ukuran teks</label><b id="tsv">${ts}%</b></div><input id="tsr" type="range" min="90" max="190" step="5" value="${ts}"><label>Bahasa</label><div class="cr">${[['id','Indonesia'],['en','English']].map(([v,l])=>`<button class="ch${S.lang===v?' on':''}" data-act="lang" data-id="${v}" aria-pressed="${S.lang===v}">${l}</button>`).join('')}</div></div>`
 +(a?'<button class="b o2" data-act="logout">Keluar</button>':'');
@@ -901,6 +916,10 @@ case'jsend':sendJoin();break;
 case'jcancel':S.jn=null;lsSet(JK,null);hdr();break;
 case'jdec':decideReq(id);break;
 case'mrole':case'mdel':memAct(id);break;
+case'gmake':guestMake();break;
+case'gr':S.gr=id;hdr();break;
+case'mre':guestRe(id);break;
+case'gshare':shareG();break;
 case'mkcode':makeCode();break;
 case'rvcode':revokeCode();break;
 case'copylink':copyLink();break;
