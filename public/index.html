@@ -628,7 +628,7 @@ const mg=()=>loadMgmt().then(()=>hdr()).catch(()=>{});
 const gUrl=t=>location.origin+'/app#login='+t;
 async function guestMake(){if(S.busy)return;const n=(S.gn||'').trim();if(!n){toast('Isi nama orangnya dulu');return;}S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/guests',{name:n,role:S.gr||'viewer'});
-if(!r.j.ok&&!r.j.code){toast('Server belum punya fitur ini. Upload backend terbaru (zip login-link).');return;}
+if(!r.j.ok&&!r.j.code){toast(r.status>=500?'Server error ('+r.status+'). Kabari Claude.':'Rute belum ada di server ('+r.status+')');return;}
 if(r.j.ok){S.glink={url:gUrl(r.j.token),name:n};S.gn='';await loadMgmt();hdr();toast('Link dibuat. Kirim sekarang, hanya tampil sekali.');}else toast(r.j.code==='too_many_guests'?'Batas anggota tanpa email tercapai':(ERR[r.j.code]||errMsg({code:r.j.code})));}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 async function guestRe(aid){const m=(S.mem||[]).find(x=>x.accountId===aid);if(!m||S.busy)return;

@@ -36,7 +36,8 @@ export async function createGuest(db, { treeId, actorId, name, role, now = new D
   const token = newToken();
   const accountId = newId();
   await db.batch([
-    t.stmt("INSERT INTO accounts (id, email, email_verified, display_name, login_link, tree_quota) VALUES (?2, ?3, 0, ?4, 1, 0)", [accountId, `guest-${accountId}@guest.invalid`, n]),
+    // bukan data per pohon: pakai db.prepare langsung (forTree menolak SQL tanpa tree_id)
+    db.prepare('INSERT INTO accounts (id, email, email_verified, display_name, login_link, tree_quota) VALUES (?1, ?2, 0, ?3, 1, 0)').bind(accountId, `guest-${accountId}@guest.invalid`, n),
     t.stmt("INSERT INTO memberships (tree_id, account_id, role, status) VALUES (?1, ?2, ?3, 'active')", [accountId, role]),
     ...tokenStmts(t, { accountId, actorId, token, now, hash: await sha256Hex(token) }),
     t.stmt("INSERT INTO audit_events (id, tree_id, actor_id, action, target_type, target_id, after_json) VALUES (?2, ?1, ?3, 'member.guest_create', 'account', ?4, json_object('role', ?5))", [newId(), actorId, accountId, role]),
