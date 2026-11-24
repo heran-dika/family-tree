@@ -13,12 +13,15 @@
 //   POST /api/trees/:id/join-requests/:rid           { action: approve|reject, role?: viewer|contributor } (Owner/Admin)
 //   POST /api/join/lookup                            { code } nama pohon + nama pengelola
 //   POST /api/join                                   { code, message? } ajukan bergabung
+//   GET  /api/trees/:id/members                      anggota aktif (Owner/Admin)
+//   POST /api/trees/:id/members/:accountId          { action: role|remove, role? } (Owner/Admin)
 //   GET  /api/join/mine                              permintaan menunggu milik akun ini
 // Usulan (Contributor, atau relasi saat sudah ada Admin kedua) BELUM tersambung: perubahan seperti itu dijawab 409 needs_proposal.
 
 import { getSession } from './auth.js';
 import { applyDirect } from './apply.js';
 import { accessCodeStatus, createAccessCode, decideJoinRequest, listJoinRequests, lookupAccessCode, myJoinRequests, requestJoin, revokeAccessCode } from './access.js';
+import { listMembers, removeMember, setMemberRole } from './members.js';
 import { findDuplicates } from './duplicates.js';
 import { exportTree } from './export.js';
 import { createTree, listTrees, readTree } from './trees.js';
@@ -67,6 +70,8 @@ const ROUTES = [
   [/^trees\/([^/]+)\/access-code\/revoke$/, ['POST'], 'revoke'],
   [/^trees\/([^/]+)\/join-requests$/, ['GET'], 'requests'],
   [/^trees\/([^/]+)\/join-requests\/([^/]+)$/, ['POST'], 'decide'],
+  [/^trees\/([^/]+)\/members$/, ['GET'], 'members'],
+  [/^trees\/([^/]+)\/members\/([^/]+)$/, ['POST'], 'member'],
   [/^join\/lookup$/, ['POST'], 'lookup'],
   [/^join\/mine$/, ['GET'], 'mine'],
   [/^join$/, ['POST'], 'join'],
@@ -143,6 +148,15 @@ export async function handleApi(request, env, { now = new Date() } = {}) {
       const b = await needBody();
       if (b.bad) return json({ ok: false, code: b.bad }, b.status);
       return reply(await decideJoinRequest(db, { treeId: id, requestId: rid, deciderId: me.id, action: b.v.action, role: b.v.role ?? null, now }), (x) => ({ ok: true, status: x.status }));
+    }
+    case 'members': return reply(await listMembers(db, { treeId: id, actorId: me.id }), (x) => ({ ok: true, members: x.members }));
+    case 'member': {
+      if (!ID.test(rid)) return json({ ok: false, code: 'not_found' }, 404);
+      const b = await needBody();
+      if (b.bad) return json({ ok: false, code: b.bad }, b.status);
+      if (b.v.action === 'remove') return reply(await removeMember(db, { treeId: id, actorId: me.id, accountId: rid }), () => ({ ok: true }));
+      if (b.v.action === 'role') return reply(await setMemberRole(db, { treeId: id, actorId: me.id, accountId: rid, role: b.v.role }), (x) => ({ ok: true, role: x.role }));
+      return json({ ok: false, code: 'bad_action' }, 400);
     }
     default: return null;
   }
