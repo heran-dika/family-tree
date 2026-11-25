@@ -144,6 +144,32 @@ details.dt[open]>summary{margin-bottom:10px}
 input[type=range]{border:0;padding:0;accent-color:var(--acc)}
 .ch.on .sx{color:inherit}
 #stage svg,#stage .tg,#stage .tg2,#stage .col,#stage .lc{transition:opacity .3s ease .15s}#stage.gl svg,#stage.gl .tg,#stage.gl .tg2,#stage.gl .col,#stage.gl .lc{opacity:0}
+
+details.ac{background:var(--card);border:1.5px solid var(--bd);border-radius:14px;overflow:hidden}
+details.ac>summary{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none;font-size:calc(15px*var(--ts,1))}
+details.ac>summary::-webkit-details-marker,details.mr>summary::-webkit-details-marker{display:none}
+details.ac>summary::after{content:'›';font-size:calc(22px*var(--ts,1));transition:transform .15s}
+details.ac[open]>summary::after{transform:rotate(90deg)}
+details.ac[open]>summary{border-bottom:1.5px solid var(--bd)}
+.acb{padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+details.mr{padding:6px 0;border-bottom:1px solid var(--bd)}details.mr:last-child{border-bottom:0}
+details.mr>summary{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none}
+details.mr>summary::after{content:'›';font-size:calc(18px*var(--ts,1));color:var(--mut);transition:transform .15s}
+details.mr[open]>summary::after{transform:rotate(90deg)}
+details.mr.na>summary{cursor:default}details.mr.na>summary::after{content:''}
+.ss{display:inline-flex;gap:4px;margin-top:4px;font-size:calc(12px*var(--ts,1));font-weight:600;border-radius:8px;padding:2px 8px}
+.ss.ok{color:var(--mut);padding-left:0;font-weight:400}
+.ss.wn{background:var(--pendbg);color:var(--pend);border:1.5px dashed var(--pend)}
+.ss.ex{background:#fbe9e7;color:#b42318;border:1.5px solid #b42318}
+.chip{font-size:calc(11px*var(--ts,1));font-weight:600;border-radius:999px;padding:2px 8px;background:var(--pendbg);color:var(--pend);border:1.5px dashed var(--pend);margin-left:auto;white-space:nowrap}
+.rd{display:flex;align-items:center;gap:10px;min-height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 12px;cursor:pointer}
+.rd.on{border-color:var(--acc);box-shadow:0 0 0 1.5px var(--acc);background:var(--accbg)}
+.rd input{flex:none;width:18px;height:18px;min-height:0;padding:0;border:0;accent-color:var(--acc);margin:0}
+.rd b{display:block;font-weight:600}
+.dg{color:#b42318!important;border-color:#b42318!important}
+#mn>*,.acb>*,details.mr{flex:none}
+.rd .m{font-weight:400}
+.ss.ok{padding:2px 0}
 </style>
 </head>
 <body>
@@ -492,9 +518,12 @@ document.addEventListener('input',e=>{if(e.target.id==='rr')S.rejText=e.target.v
 let SD=null,slm=0;
 document.addEventListener('pointerdown',e=>{const th=e.target.closest&&e.target.closest('.sl-th');if(!th)return;const tr=th.parentElement;SD={th,tr,x0:e.clientX,mx:(tr.clientWidth-th.offsetWidth)/2-4,dx:0,id:th.dataset.id};try{th.setPointerCapture(e.pointerId);}catch(x){}th.style.transition='none';});
 document.addEventListener('pointermove',e=>{if(!SD)return;const dx=Math.max(-SD.mx,Math.min(SD.mx,e.clientX-SD.x0)),p=dx/SD.mx;SD.dx=dx;if(Math.abs(dx)>6)slm=Date.now();SD.th.style.transform='translateX('+dx+'px)';SD.th.dataset.d=p<=-.75?'a':p>=.75?'r':'';SD.tr.style.setProperty('--p',p.toFixed(2));});
-const sEnd=()=>{if(!SD)return;const{th,tr,mx,dx,id}=SD;SD=null;if(Math.abs(dx)>=.75*mx){if(dx<0)resolve(+id,true);else{S.rej=+id;S.rejText='';hdr();sheet();}return;}th.style.transition='transform .2s ease';th.style.transform='';th.dataset.d='';tr.style.setProperty('--p',0);};
+// slider approval: id 'J:<idPermintaan>' = permintaan bergabung, selain itu = usulan perubahan pohon
+const slYes=id=>{if(String(id)[0]==='J'){const r=String(id).slice(2);decideReq(r+'|approve|'+((S.jrole||{})[r]||'viewer'));}else resolve(+id,true);};
+const slNo=id=>{if(String(id)[0]==='J'){S.jrej=String(id).slice(2);S.jrt='';hdr();}else{S.rej=+id;S.rejText='';hdr();sheet();}};
+const sEnd=()=>{if(!SD)return;const{th,tr,mx,dx,id}=SD;SD=null;if(Math.abs(dx)>=.75*mx){if(dx<0)slYes(id);else slNo(id);return;}th.style.transition='transform .2s ease';th.style.transform='';th.dataset.d='';tr.style.setProperty('--p',0);};
 document.addEventListener('pointerup',sEnd);document.addEventListener('pointercancel',sEnd);
-document.addEventListener('keydown',e=>{const th=e.target.closest&&e.target.closest('.sl-th');if(!th)return;if(e.key==='ArrowLeft'){e.preventDefault();resolve(+th.dataset.id,true);}else if(e.key==='ArrowRight'){e.preventDefault();S.rej=+th.dataset.id;S.rejText='';hdr();sheet();}});
+document.addEventListener('keydown',e=>{const th=e.target.closest&&e.target.closest('.sl-th');if(!th)return;if(e.key==='ArrowLeft'){e.preventDefault();slYes(th.dataset.id);}else if(e.key==='ArrowRight'){e.preventDefault();slNo(th.dataset.id);}});
 let tm,hT;function toast(t){const e=$('#tt');e.textContent=t;e.className='o';clearTimeout(tm);tm=setTimeout(()=>e.className='',2200);}
 function hdr(){views();bnr();$('#pc').textContent=S.props.length+' menunggu';document.querySelectorAll('[data-act=role]').forEach(b=>{const on=b.dataset.id===S.role;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});}
 const nz=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -545,7 +574,9 @@ const hlist=()=>S.hist.length?`<div class="h">Riwayat (${S.hist.length})</div>`+
 const pgrp=(t,k)=>{const a=S.props.filter(p=>p.kind===k);return a.length?`<div class="h">${t} (${a.length})</div>`+a.map(pcard).join(''):'';};
 const plist2=()=>(S.props.length?pgrp('Perubahan pohon','tree')+pgrp('Permintaan akses','join'):'<div class="c">Tidak ada pengajuan.</div>')+hlist();
 function shPend(){return `<div class="rw"><div class="t">Menunggu persetujuan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+plist2();}
-function sheet(){const sh=$('#sh');if(S.ui!==S.lu){S.wo='';S.lu=S.ui;}if(!S.ui){sh.className='';sh.innerHTML='';return;}sh.className='o';sh.innerHTML=S.ui==='person'?shPerson():S.ui==='form'?shForm():S.ui==='trace'?shTrace():S.ui==='del'?shDel():S.ui==='search'?shSearch():S.ui==='ph'?shPh():S.ui==='sp'?shSp():shPend();if(S.ui==='form')sh.querySelectorAll('.wh').forEach(e=>{e.scrollTop=(+e.dataset.i)*WI;wfx(e);});}
+function shHome(){const a=S.acc;if(!a)return'';const join=S.hs==='join';return `<div class="rw"><div class="t">${join?'Gabung dengan tautan atau kode':'Buat pohon baru'}</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+(join?`<div class="c"><input id="jc" value="${esc(S.jc||'')}" placeholder="Tempel tautan atau kode dari pengelola" autocomplete="off"><button class="b o2" data-act="jlook">Lanjut</button></div>
+`:`<div class="c"><label for="nt">Nama pohon</label><input id="nt" value="${esc(S.nt||'')}" placeholder="mis. Keluarga Ahmad" autocomplete="off"><label for="ns">Nama Anda (profil pertama)</label><input id="ns" value="${esc(S.ns!=null?S.ns:(a.displayName||''))}" autocomplete="off"><label>Jenis kelamin Anda (opsional)</label><div class="cr">${[['L','Laki-laki'],['P','Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(S.cg||'')===v?' on':''}" data-act="cg" data-id="${v}" aria-pressed="${(S.cg||'')===v}">${l}</button>`).join('')}</div><button class="b" data-act="mktree">Buat pohon</button><div class="m">Satu pohon per akun. Anda otomatis jadi Owner.</div></div>`);}
+function sheet(){const sh=$('#sh');if(S.ui!==S.lu){S.wo='';S.lu=S.ui;}if(!S.ui){sh.className='';sh.innerHTML='';return;}sh.className='o';sh.innerHTML=S.ui==='person'?shPerson():S.ui==='form'?shForm():S.ui==='trace'?shTrace():S.ui==='del'?shDel():S.ui==='search'?shSearch():S.ui==='ph'?shPh():S.ui==='sp'?shSp():S.ui==='home'?shHome():shPend();if(S.ui==='form')sh.querySelectorAll('.wh').forEach(e=>{e.scrollTop=(+e.dataset.i)*WI;wfx(e);});}
 const SSL={menikah:'Menikah',cerai:'Cerai',tidak:'Status belum diketahui'},spLbl=x=>SSL[x.t||'menikah']+(x.y?' · nikah '+fdate(x.y,x.yd,false):'')+(x.ya?' · cerai '+fdate(x.ya,x.yad,false):'');
 function syncSp(){const f=S.sf;if(!f)return;const a=$('#sy'),b=$('#sa');if(a)f.y=a.value.trim();if(b)f.ya=b.value.trim();}
 function shSp(){const f=S.sf,r=f.rec;return `<div class="rw"><div class="t">Hubungan pasangan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div><div class="m"><b>${esc(P(r.a).n)}</b> dan <b>${esc(P(r.b).n)}</b></div><label>Status hubungan</label><div class="cr">${[['menikah','Menikah'],['cerai','Cerai'],['tidak','Tidak diketahui']].map(([v,l])=>`<button class="ch${f.t===v?' on':''}" data-act="sst" data-id="${v}" aria-pressed="${f.t===v}">${l}</button>`).join('')}</div>${dfield('sf','n',f,'Tahun nikah (opsional)')}${f.t==='cerai'?dfield('sf','c',f,'Tahun cerai (opsional)'):''}${f.warn?`<div class="warn"><b>Periksa dulu:</b> Tahun cerai sebelum tahun nikah.<div class="g2"><button class="b" data-act="spok">Tetap simpan</button><button class="b o2" data-act="spnw">Perbaiki</button></div></div>`:''}<div class="m">${S.role==='contributor'?'Masuk daftar persetujuan Owner atau Admin lain.':'Langsung tersimpan.'}</div><div class="g2"><button class="b" data-act="spsave">${S.role==='contributor'?'Ajukan':'Simpan'}</button><button class="b o2" data-act="back">Batal</button></div>`;}
@@ -628,13 +659,13 @@ const mg=()=>loadMgmt().then(()=>hdr()).catch(()=>{});
 const gUrl=t=>location.origin+'/app#login='+t;
 async function guestMake(){if(S.busy)return;const n=(S.gn||'').trim();if(!n){toast('Isi nama orangnya dulu');return;}S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/guests',{name:n,role:S.gr||'viewer'});
-if(!r.j.ok&&!r.j.code){toast(r.status>=500?'Server error ('+r.status+'). Kabari Claude.':'Rute belum ada di server ('+r.status+')');return;}
-if(r.j.ok){S.glink={url:gUrl(r.j.token),name:n};S.gn='';await loadMgmt();hdr();const g=$('#gl');if(g)g.scrollIntoView({block:'center'});toast('Link dibuat. Kirim sekarang, hanya tampil sekali.');}else toast(r.j.code==='too_many_guests'?'Batas anggota tanpa email tercapai':(ERR[r.j.code]||errMsg({code:r.j.code})));}
+if(!r.j.ok&&!r.j.code){toast('Server belum punya fitur ini. Upload backend terbaru (zip login-link).');return;}
+if(r.j.ok){S.glink={url:gUrl(r.j.token),name:n};S.gn='';await loadMgmt();hdr();toast('Link dibuat. Kirim sekarang, hanya tampil sekali.');}else toast(r.j.code==='too_many_guests'?'Batas anggota tanpa email tercapai':(ERR[r.j.code]||errMsg({code:r.j.code})));}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 async function guestRe(aid){const m=(S.mem||[]).find(x=>x.accountId===aid);if(!m||S.busy)return;
 if(!confirm('Buat ulang link untuk '+m.name+'? HP lamanya langsung keluar dan link lama mati.'))return;S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/guests/'+aid,{});
-if(r.j.ok){S.glink={url:gUrl(r.j.token),name:m.name};hdr();const g=$('#gl');if(g)g.scrollIntoView({block:'center'});toast('Link baru dibuat. Kirim sekarang.');}else toast(ERR[r.j.code]||errMsg({code:r.j.code}));}
+if(r.j.ok){S.glink={url:gUrl(r.j.token),name:m.name};hdr();toast('Link baru dibuat. Kirim sekarang.');}else toast(ERR[r.j.code]||errMsg({code:r.j.code}));}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 async function shareG(){const l=S.glink&&S.glink.url;if(!l)return;const t='Halo '+S.glink.name+', buka link ini untuk melihat pohon keluarga: '+l;
 if(navigator.share){try{await navigator.share({text:t});}catch(x){}}else{try{await navigator.clipboard.writeText(l);toast('Link disalin');}catch(x){toast('Salin manual dari kolom link');}}}
@@ -645,14 +676,34 @@ S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/members/'+aid,act==='remove'?{action:'remove'}:{action:'role',role});
 toast(r.j.ok?(act==='remove'?'Anggota dikeluarkan':'Peran diubah'):(ERR[r.j.code]||errMsg({code:r.j.code})));
 await loadMgmt();hdr();}catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
-function memHtml(){if(!S.tid||!['owner','admin'].includes(S.role))return'';const SW=['viewer','contributor'];
-return '<div class="h">Anggota ('+(S.mem||[]).length+')</div><div class="c">'+(S.mem||[]).map(m=>{const ed=!m.self&&(SW.includes(m.role)||(S.role==='owner'&&m.role==='admin'));
-return '<div><b>'+esc(m.name)+'</b> <span class="bd2">'+(ROLE[m.role]||esc(m.role))+'</span><div class="m">'+(m.guest?'Tanpa email (login lewat link)':esc(m.email))+'</div>'+(ed?'<div class="g2" style="margin-top:6px">'+(SW.includes(m.role)?SW.filter(r=>r!==m.role).map(r=>'<button class="b o2" data-act="mrole" data-id="'+m.accountId+'|role|'+r+'">Jadikan '+ROLE[r]+'</button>').join(''):'')+(m.guest&&S.role==='owner'?'<button class="b o2" data-act="mre" data-id="'+m.accountId+'">Buat ulang link</button>':'')+'<button class="b o2" data-act="mdel" data-id="'+m.accountId+'|remove" style="color:#b42318;border-color:#b42318">Keluarkan</button></div>':'')+'</div>';}).join('<hr style="border:0;border-top:1px solid var(--bd);width:100%">')+'</div>';}
-async function decideReq(spec){
+// TODO(backend): /members belum tentu mengirim m.sessionExpiresAt (ISO atau epoch ms). Tanpa field ini baris status sesi tidak tampil.
+// Perlu dipastikan: sesi absolut atau diperpanjang tiap dipakai, dan banyak perangkat per akun (field mana yang dikirim).
+const DAY=864e5;
+function sesInfo(m){if(m.self||m.sessionExpiresAt==null)return null;const exp=new Date(m.sessionExpiresAt).getTime();if(isNaN(exp))return null;const rem=exp-Date.now();
+if(rem<=0){const d=Math.floor(-rem/DAY);return{k:'ex',t:d<1?'Sesi habis hari ini':'Sesi habis '+d+' hari lalu'};}
+const d=Math.ceil(rem/DAY),lim=m.guest?5:1;
+if(d<=lim)return{k:'wn',t:d<=1?'Sesi berakhir dalam 1 hari':'Sesi berakhir dalam '+d+' hari'};
+return{k:'ok',t:'Sisa sesi '+d+' hari'};}
+function memSec(){if(!S.tid||!['owner','admin'].includes(S.role))return null;const SW=['viewer','contributor'],ms=S.mem||[];let bad=0;
+const rows=ms.map(m=>{const ed=!m.self&&(SW.includes(m.role)||(S.role==='owner'&&m.role==='admin')),si=sesInfo(m),pr=!!si&&si.k!=='ok';if(pr)bad++;
+const head='<div><b>'+esc(m.name)+'</b> <span class="bd2">'+(ROLE[m.role]||esc(m.role))+'</span><div class="m">'+(m.guest?'Tanpa email (login lewat link)':esc(m.email))+(m.self?' · Anda':'')+'</div>'+(si?'<div class="ss '+si.k+'">'+(si.k==='ok'?'':'<span aria-hidden="true">'+(si.k==='wn'?'⚠':'✕')+'</span>')+si.t+'</div>':'')+'</div>';
+if(!ed)return'<details class="mr na"><summary>'+head+'</summary></details>';
+const re=m.guest&&S.role==='owner';
+return'<details class="mr"><summary>'+head+'</summary>'+(re&&pr?'<div class="m" style="margin-top:6px">Tanpa email, dia tidak bisa masuk sendiri setelah sesi habis. Buat link baru sebelum waktunya.</div>':'')+'<div class="g2" style="margin-top:8px">'
++(re?'<button class="b'+(pr?'':' o2')+'" data-act="mre" data-id="'+m.accountId+'">Buat ulang link</button>':'')
++(SW.includes(m.role)?SW.filter(r=>r!==m.role).map(r=>'<button class="b o2" data-act="mrole" data-id="'+m.accountId+'|role|'+r+'">Jadikan '+ROLE[r]+'</button>').join(''):'')
++'<button class="b o2 dg" data-act="mdel" data-id="'+m.accountId+'|remove">Keluarkan</button></div></details>';}).join('');
+return{title:'Anggota ('+ms.length+')',chip:bad?'<span class="chip">'+bad+' sesi perlu perhatian</span>':'',body:rows||'<div class="m">Belum ada anggota.</div>'};}
+async function decideReq(spec,reason){
 const[rid,action,role]=spec.split('|');if(S.busy)return;S.busy=true;
-try{const r=await post('/api/trees/'+S.tid+'/join-requests/'+rid,{action,role:role||null});
-if(r.j.ok)toast(action==='approve'?'Disetujui sebagai '+(role==='contributor'?'Contributor':'Viewer')+'. Minta orangnya membuka aplikasi lagi.':'Permintaan ditolak');
+try{const u='/api/trees/'+S.tid+'/join-requests/'+rid;
+// TODO(backend): field `reason` (alasan tolak, untuk pemohon) belum tentu diterima server, dan belum diketahui apakah server bisa kirim email.
+// Kalau server menolak body ber-reason, ulangi tanpa alasan supaya penolakan tetap jalan.
+let r=await post(u,{action,role:role||null,...(reason?{reason}:{})}),drop=false;
+if(!r.j.ok&&reason){const r2=await post(u,{action,role:null});if(r2.j.ok){r=r2;drop=true;}}
+if(r.j.ok)toast(action==='approve'?'Disetujui sebagai '+(role==='contributor'?'Contributor':'Viewer')+'. Minta orangnya membuka aplikasi lagi.':drop?'Permintaan ditolak. Alasan belum bisa dikirim: server belum mendukung.':'Permintaan ditolak');
 else toast(ERR[r.j.code]||errMsg({code:r.j.code}));
+S.jrej=null;S.jrt='';
 await loadMgmt();hdr();}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 const linkOf=()=>S.code?location.origin+'/app#join='+S.code:'';
@@ -678,7 +729,7 @@ if(!name){toast('Nama pohon wajib diisi');return;}if(!sn){toast('Nama Anda wajib
 S.busy=true;
 try{const r=await post('/api/trees',{name,selfName:sn,selfGender:S.cg==='L'?'male':S.cg==='P'?'female':null});
 if(!r.j.ok){toast(ERR[r.j.code]||'Gagal membuat pohon ('+(r.j.code||r.status)+')');return;}
-S.nt='';S.dto=undefined;await refreshTrees();S.busy=false;await openTree(r.j.tree.id);}
+S.nt='';S.dto=undefined;done();sheet();await refreshTrees();S.busy=false;await openTree(r.j.tree.id);}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 async function logout(){try{await post('/api/auth/logout',{});}catch(x){}S.acc=null;S.trees=null;S.tid=null;S.people={};S.par=[];S.sp=[];done();sheet();tab('beranda');hdr();}
 async function exportJson(){
@@ -776,9 +827,13 @@ await run(async()=>{const r=await change('parent_child',{action:'create',child_i
 // BACKEND-TODO alur persetujuan (slider geser di tab Approval): belum ada di klien maupun server (server membalas needs_proposal)
 function resolve(){toast('Alur persetujuan belum tersambung');}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#dtn>summary'))setTimeout(()=>{const d=$('#dtn');if(d)S.dto=d.open;},0);});
-document.addEventListener('input',e=>{const i=e.target.id;if(i==='gn')S.gn=e.target.value;if(i==='nt')S.nt=e.target.value;if(i==='ns')S.ns=e.target.value;if(i==='jc')S.jc=e.target.value;if(i==='jm')S.jm=e.target.value;});
+document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('ac')){if(d.open)S.mo=d.dataset.k;else if(S.mo===d.dataset.k)S.mo='';}},true);
+document.addEventListener('input',e=>{const i=e.target.id;if(i==='jrr')S.jrt=e.target.value;if(i==='gn')S.gn=e.target.value;if(i==='nt')S.nt=e.target.value;if(i==='ns')S.ns=e.target.value;if(i==='jc')S.jc=e.target.value;if(i==='jm')S.jm=e.target.value;});
 
 const lg=t=>S.log.push((S.role==='owner'?'Owner':'Contributor')+': '+t);
+const jrole=r=>(S.jrole||{})[r]||'viewer';
+const jrform=r=>`<div class="rf"><div class="m">Pemohon: ${esc(r.name)} (${esc(r.email)})</div><label for="jrr">Alasan penolakan (wajib, maks 300 karakter)</label><div class="cr">${['Bukan anggota keluarga','Belum yakin'].map(x=>`<button class="ch" data-act="jrq" data-id="${x}">${x}</button>`).join('')}</div><input id="jrr" maxlength="300" value="${esc(S.jrt||'')}" autocomplete="off"><div class="g2"><button class="b" data-act="jrsend" data-id="${r.id}">Kirim penolakan</button><button class="b o2" data-act="jrcancel">Batal</button></div></div>`;
+const jcard=r=>`<div class="c"><div><b>${esc(r.name)}</b> <span class="m">${esc(r.email)}</span></div>${r.message?`<div>“${esc(r.message)}”</div>`:''}`+(S.jrej===String(r.id)?jrform(r):`<div class="m"><b>Beri peran</b></div>${[['viewer','Viewer','Hanya melihat pohon'],['contributor','Contributor','Bisa mengajukan perubahan']].map(([v,l,d])=>`<label class="rd${jrole(r.id)===v?' on':''}" data-act="jrole" data-id="${r.id}|${v}"><input type="radio" name="jr${r.id}" value="${v}"${jrole(r.id)===v?' checked':''}><span><b>${l}</b><span class="m">${d}</span></span></label>`).join('')}<div class="sl" data-act="slh" role="group" aria-label="Setujui atau tolak"><span class="sl-l">${ICs('M5 12l5 5L20 7')} Setujui</span><span class="sl-r">Tolak ${ICs('M6 6l12 12M18 6L6 18')}</span><button class="sl-th" data-id="J:${r.id}" aria-label="Geser ke kiri untuk menyetujui, ke kanan untuk menolak"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></button></div>`)+'</div>';
 function views(){
 const reqs=S.reqs||[],n=S.props.length+reqs.length,hd=t=>`<div class="t" style="font-size:calc(22px*var(--ts,1))">${t}</div>`,a=S.acc;
 const AE={access_denied:'Login dibatalkan.',state_invalid:'Sesi login kedaluwarsa, coba lagi.',email_not_verified:'Email Google belum terverifikasi.',network:'Tidak bisa terhubung ke server.',guest_invalid:'Link ini sudah dipakai atau kedaluwarsa. Minta link baru ke pengelola.'};
@@ -791,20 +846,21 @@ ${S.jn?`<div class="c" style="border:2px solid var(--acc)"><div class="t">Gabung
 <div${S.jn?' class="dim2" aria-hidden="true"':''}>${(S.trees||[]).map(t=>`<button class="tc" data-act="open" data-id="${t.id}"${t.id===S.tid?' style="border:2px solid var(--acc)"':''}><div class="rw"><b class="t">${esc(t.name)}</b><span class="bd2 on">${ROLE[t.role]||esc(t.role)}</span></div><b style="color:var(--acc)">Buka pohon ›</b></button>`).join('')}
 ${(S.pend||[]).map(p=>`<div class="tc" style="border-style:dashed"><div class="rw"><b class="t">${esc(p.treeName)}</b><span class="bd2">Menunggu</span></div><div class="m">Permintaan sudah terkirim. Mengajukan lagi tidak mempercepat; hubungi pengelola supaya segera disetujui. Isi pohon belum bisa dilihat.</div><a class="b o2" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:8px" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=${encodeURIComponent('Halo, saya sudah mengajukan bergabung ke pohon "'+p.treeName+'" di Family Tree. Mohon disetujui ya.')}">Ingatkan pengelola lewat WhatsApp</a></div>`).join('')}
 ${!(S.trees||[]).length&&!(S.pend||[]).length&&!S.jn?'<div class="c">Belum ada pohon. Buat yang pertama di bawah, atau gabung dengan tautan dari pengelola.</div>':''}
-<details class="dt" id="dtn"${(S.dto!==undefined?S.dto:!((S.trees||[]).length||(S.pend||[]).length))?' open':''}><summary>Buat pohon baru atau gabung</summary><div class="dtb"><div class="h">Gabung dengan tautan atau kode</div><div class="c"><input id="jc" value="${esc(S.jc||'')}" placeholder="Tempel tautan atau kode dari pengelola" autocomplete="off"><button class="b o2" data-act="jlook">Lanjut</button></div>
-<div class="h">Buat pohon baru</div><div class="c"><label for="nt">Nama pohon</label><input id="nt" value="${esc(S.nt||'')}" placeholder="mis. Keluarga Ahmad" autocomplete="off"><label for="ns">Nama Anda (profil pertama)</label><input id="ns" value="${esc(S.ns!=null?S.ns:(a.displayName||''))}" autocomplete="off"><label>Jenis kelamin Anda (opsional)</label><div class="cr">${[['L','Laki-laki'],['P','Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(S.cg||'')===v?' on':''}" data-act="cg" data-id="${v}" aria-pressed="${(S.cg||'')===v}">${l}</button>`).join('')}</div><button class="b" data-act="mktree">Buat pohon</button><div class="m">Satu pohon per akun. Anda otomatis jadi Owner.</div></div></div></details></div>`;
+</div><div class="g2" style="margin-top:auto"><button class="b" data-act="hnew">Buat pohon baru</button><button class="b o2" data-act="hjoin">Gabung undangan</button></div>`;
 $('#nb').textContent=n||'';
 $('#v-beranda').innerHTML=home;
-const jr=reqs.length?`<div class="h">Permintaan bergabung (${reqs.length})</div>`+reqs.map(r=>`<div class="c"><div><b>${esc(r.name)}</b> <span class="m">${esc(r.email)}</span></div>${r.message?`<div>“${esc(r.message)}”</div>`:''}<div class="g2"><button class="b" data-act="jdec" data-id="${r.id}|approve|viewer">Setujui: Viewer</button><button class="b" data-act="jdec" data-id="${r.id}|approve|contributor">Setujui: Contributor</button></div><button class="b o2" data-act="jdec" data-id="${r.id}|reject">Tolak</button></div>`).join('')+'<div class="m">Viewer hanya melihat. Contributor mengajukan perubahan (alur persetujuan perubahan belum tersambung di versi ini).</div>':'';
+const jr=reqs.length?`<div class="h">Permintaan bergabung (${reqs.length})</div>`+reqs.map(jcard).join('')+'<div class="m">Viewer hanya melihat. Contributor mengajukan perubahan (alur persetujuan perubahan belum tersambung di versi ini).</div>':'';
 $('#v-setuju').innerHTML=hd('Approval')+'<div class="m">Alur persetujuan perubahan belum tersambung ke server di versi ini. Selama Anda satu-satunya pengelola, perubahan langsung tersimpan.</div>'+jr+plist2();
 const ts=Math.round(S.ts*100),act=S.codeSt&&S.codeSt.active;
-$('#mn').innerHTML=hd('Menu')+`<div class="h">Akun</div><div class="c">${a?esc(a.email):'Belum masuk'}</div>`
-+(S.tid?`<div class="h">Pohon</div><div class="c"><b>${esc(S.tname)}</b><span class="m">Peran: ${ROLE[S.role]||''}</span>${['owner','admin'].includes(S.role)?'<button class="b o2" data-act="export">Ekspor JSON</button><div class="m">Bukan backup penuh: tanggal lahir yang tersembunyi tidak ikut.</div>':''}</div>`:'')
-+memHtml()
-+(S.tid&&S.role==='owner'?`<div class="h">Undang tanpa email</div><div class="c"><div class="m">Untuk keluarga yang tidak punya akun Google. Link hanya bisa dipakai satu kali, di satu HP.</div><label for="gn">Nama orangnya</label><input id="gn" value="${esc(S.gn||'')}" maxlength="100" autocomplete="off"><div class="cr">${[['viewer','Viewer (hanya lihat)'],['contributor','Contributor (mengajukan)']].map(([v,l])=>`<button class="ch${(S.gr||'viewer')===v?' on':''}" data-act="gr" data-id="${v}" aria-pressed="${(S.gr||'viewer')===v}">${l}</button>`).join('')}</div><button class="b" data-act="gmake">Buat link</button>${S.glink?`<div class="warn"><b>Link untuk ${esc(S.glink.name)}</b> (hanya tampil sekarang)<input id="gl" readonly value="${esc(S.glink.url)}"><button class="b" data-act="gshare">Kirim / salin</button></div>`:''}</div>`:'')
-+(S.tid&&S.role==='owner'?`<div class="h">Tautan bergabung</div><div class="c"><div class="m">${act?'Tautan aktif. Siapa pun yang memegangnya bisa mengajukan bergabung, tetapi tetap Anda yang menyetujui dan memilih perannya.':'Belum ada tautan aktif.'}</div>${S.code?`<input id="lk" readonly value="${esc(linkOf())}"><div class="g2"><button class="b" data-act="copylink">Salin tautan</button><button class="b o2" data-act="sharelink">Bagikan</button></div><div class="m">Tautan hanya ditampilkan sekarang. Kalau hilang, buat tautan baru (yang lama otomatis mati).</div>`:''}<button class="b o2" data-act="mkcode">${act?'Buat tautan baru (yang lama mati)':'Buat tautan'}</button>${act?'<button class="b o2" data-act="rvcode">Cabut tautan</button>':''}</div>`:'')
-+`<div class="h">Pengaturan tampilan</div><div class="c"><div class="rw"><label for="tsr">Ukuran teks</label><b id="tsv">${ts}%</b></div><input id="tsr" type="range" min="90" max="190" step="5" value="${ts}"><label>Bahasa</label><div class="cr">${[['id','Indonesia'],['en','English']].map(([v,l])=>`<button class="ch${S.lang===v?' on':''}" data-act="lang" data-id="${v}" aria-pressed="${S.lang===v}">${l}</button>`).join('')}</div></div>`
-+(a?'<button class="b o2" data-act="logout">Keluar</button>':'');
+const acc=(k,ti,body,chip)=>`<details class="ac" name="mn" data-k="${k}"${S.mo===k?' open':''}><summary><span>${ti}</span>${chip||''}</summary><div class="acb">${body}</div></details>`;
+const GUESTH=`<div class="c"><div class="m">Untuk keluarga yang tidak punya akun Google. Link hanya bisa dipakai satu kali, di satu HP.</div><label for="gn">Nama orangnya</label><input id="gn" value="${esc(S.gn||'')}" maxlength="100" autocomplete="off"><div class="cr">${[['viewer','Viewer (hanya lihat)'],['contributor','Contributor (mengajukan)']].map(([v,l])=>`<button class="ch${(S.gr||'viewer')===v?' on':''}" data-act="gr" data-id="${v}" aria-pressed="${(S.gr||'viewer')===v}">${l}</button>`).join('')}</div><button class="b" data-act="gmake">Buat link</button>${S.glink?`<div class="warn"><b>Link untuk ${esc(S.glink.name)}</b> (hanya tampil sekarang)<input id="gl" readonly value="${esc(S.glink.url)}"><button class="b" data-act="gshare">Kirim / salin</button></div>`:''}</div>`,CODEH=`<div class="c"><div class="m">${act?'Tautan aktif. Siapa pun yang memegangnya bisa mengajukan bergabung, tetapi tetap Anda yang menyetujui dan memilih perannya.':'Belum ada tautan aktif.'}</div>${S.code?`<input id="lk" readonly value="${esc(linkOf())}"><div class="g2"><button class="b" data-act="copylink">Salin tautan</button><button class="b o2" data-act="sharelink">Bagikan</button></div><div class="m">Tautan hanya ditampilkan sekarang. Kalau hilang, buat tautan baru (yang lama otomatis mati).</div>`:''}<button class="b o2" data-act="mkcode">${act?'Buat tautan baru (yang lama mati)':'Buat tautan'}</button>${act?'<button class="b o2" data-act="rvcode">Cabut tautan</button>':''}</div>`,UIH=`<div class="c"><div class="rw"><label for="tsr">Ukuran teks</label><b id="tsv">${ts}%</b></div><input id="tsr" type="range" min="90" max="190" step="5" value="${ts}"><label>Bahasa</label><div class="cr">${[['id','Indonesia'],['en','English']].map(([v,l])=>`<button class="ch${S.lang===v?' on':''}" data-act="lang" data-id="${v}" aria-pressed="${S.lang===v}">${l}</button>`).join('')}</div></div>`,iv=S.iv||'google',ms=memSec();
+const INVH=`<div class="cr"><button class="ch${iv==='google'?' on':''}" data-act="ivt" data-id="google" aria-pressed="${iv==='google'}">Punya akun Google</button><button class="ch${iv==='email'?' on':''}" data-act="ivt" data-id="email" aria-pressed="${iv==='email'}">Tanpa email</button></div>`+(iv==='google'?CODEH:GUESTH);
+const TREEH=`<div class="m">${esc(S.tname||'')} · ${ROLE[S.role]||''}</div><button class="b o2" data-act="export">Ekspor JSON</button><div class="m">Bukan backup penuh: tanggal lahir yang tersembunyi tidak ikut.</div>`;
+$('#mn').innerHTML=hd('Menu')+`<div class="c"><div class="rw"><div><b>${a?esc(a.email):'Belum masuk'}</b>${S.tid?`<div class="m">${ROLE[S.role]||''} · ${esc(S.tname||'')}</div>`:''}</div>${a?'<button class="ch" data-act="logout">Keluar</button>':''}</div></div>`
++(ms?acc('mem',ms.title,ms.body,ms.chip):'')
++(S.tid&&S.role==='owner'?acc('inv','Undang orang',INVH):'')
++(S.tid&&['owner','admin'].includes(S.role)?acc('tree','Pohon dan ekspor',TREEH):'')
++acc('ui','Tampilan',UIH);
 }
 
 function tab(id){if(id==='pohon'&&!S.tid){toast('Pilih atau buat pohon dulu');id='beranda';}if(S.tid&&(id==='setuju'||id==='menu'))mg();if(id==='beranda'&&S.acc)refreshTrees().then(()=>hdr()).catch(()=>{});S.tab=id;done();sheet();document.querySelectorAll('.vs').forEach(v=>v.classList.toggle('on',v.id==='v-'+id));document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.id===id));if(id==='pohon'){rf();ctr(tree());}}
@@ -912,13 +968,20 @@ case'gd':sync();f.g=id;if(f.k==='parent'&&id)f.role=roleOfG(id);sheet();break;
 case'prole':sync();f.role=id;if(f.k==='parent')f.g=id==='father'?'L':'P';sheet();break;
 case'open':openTree(id);break;
 case'mktree':mkTree();break;
-case'cg':S.cg=id;hdr();break;
+case'cg':S.cg=id;hdr();sheet();break;
 case'logout':logout();break;
 case'export':exportJson();break;
-case'jlook':{const c=parseCode(S.jc);if(!c){toast('Tempel tautan atau kode dari pengelola');break;}lookupJoin(c).then(ok=>{if(ok)S.jc='';hdr();});break;}
+case'jlook':{const c=parseCode(S.jc);if(!c){toast('Tempel tautan atau kode dari pengelola');break;}lookupJoin(c).then(ok=>{if(ok){S.jc='';done();sheet();}hdr();});break;}
 case'jsend':sendJoin();break;
 case'jcancel':S.jn=null;lsSet(JK,null);hdr();break;
 case'jdec':decideReq(id);break;
+case'hnew':S.hs='new';S.ui='home';sheet();break;
+case'hjoin':S.hs='join';S.ui='home';sheet();break;
+case'ivt':S.iv=id;hdr();break;
+case'jrole':{const p=id.split('|');S.jrole=S.jrole||{};S.jrole[p[0]]=p[1];hdr();break;}
+case'jrq':S.jrt=id;hdr();break;
+case'jrcancel':S.jrej=null;hdr();break;
+case'jrsend':{const x=(S.jrt||'').trim();if(!x){toast('Alasan wajib diisi');break;}decideReq(id+'|reject',x);break;}
 case'mrole':case'mdel':memAct(id);break;
 case'gmake':guestMake();break;
 case'gr':S.gr=id;hdr();break;
