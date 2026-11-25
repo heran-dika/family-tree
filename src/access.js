@@ -140,10 +140,14 @@ export async function myJoinRequests(db, accountId) {
   return results.map((r) => ({ id: r.id, treeName: r.name, createdAt: r.created_at }));
 }
 
-export async function decideJoinRequest(db, { treeId, requestId, deciderId, action, role = null, now = new Date() }) {
+export async function decideJoinRequest(db, { treeId, requestId, deciderId, action, role = null, reason = null, now = new Date() }) {
   if (action !== 'approve' && action !== 'reject') return fail('bad_action');
   const ok = action === 'approve';
   if (ok && !JOIN_ROLES.includes(role)) return fail('invalid_role');
+  // tolak WAJIB beralasan (maks 300 karakter); disimpan di permintaan dan dicatat di audit
+  const why = typeof reason === 'string' ? reason.trim() : '';
+  if (!ok && !why) return fail('reason_required');
+  if (!ok && chars(why) > 300) return fail('reason_too_long');
   const m = await getMembership(db, treeId, deciderId);
   if (!m || !can(m.role, 'member.invite')) return fail('forbidden');
   const t = forTree(db, treeId);
@@ -162,11 +166,11 @@ export async function decideJoinRequest(db, { treeId, requestId, deciderId, acti
   stmts.push(
     t.stmt(
       "INSERT INTO audit_events (id, tree_id, actor_id, action, target_type, target_id, after_json) SELECT ?3, ?1, ?4, ?5, 'join_request', ?2, ?6 WHERE EXISTS (SELECT 1 FROM join_requests WHERE tree_id = ?1 AND id = ?2 AND status = 'pending')",
-      [requestId, newId(), deciderId, ok ? 'member.join_approve' : 'member.join_reject', JSON.stringify(ok ? { role } : {})]
+      [requestId, newId(), deciderId, ok ? 'member.join_approve' : 'member.join_reject', JSON.stringify(ok ? { role } : { reason: why })]
     ),
     t.stmt(
-      "UPDATE join_requests SET status = ?3, role = ?4, decided_by = ?5, decided_at = ?6 WHERE tree_id = ?1 AND id = ?2 AND status = 'pending'",
-      [requestId, ok ? 'approved' : 'rejected', ok ? role : null, deciderId, sqlTime(now)]
+      "UPDATE join_requests SET status = ?3, role = ?4, decided_by = ?5, decided_at = ?6, reason = ?7 WHERE tree_id = ?1 AND id = ?2 AND status = 'pending'",
+      [requestId, ok ? 'approved' : 'rejected', ok ? role : null, deciderId, sqlTime(now), ok ? null : why]
     )
   );
   const res = await db.batch(stmts);

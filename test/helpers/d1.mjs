@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 
 export const MIGRATIONS = [
   '0001_init', '0002_people_gender', '0003_people_visibility_by_self',
-  '0004_partnership_unique_pair', '0005_edge_unique_pair', '0006_invitations_flow', '0007_sessions', '0008_tree_quota', '0009_tree_access',
+  '0004_partnership_unique_pair', '0005_edge_unique_pair', '0006_invitations_flow', '0007_sessions', '0008_tree_quota', '0009_tree_access', '0010_guest_login', '0011_join_reason',
 ];
 
 export function fakeD1(sqlite) {

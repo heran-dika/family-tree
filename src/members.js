@@ -3,7 +3,7 @@
 // Owner juga bisa mengeluarkan Admin. Owner tidak bisa dikeluarkan. Mengeluarkan = status 'removed' (profil dan relasi tetap).
 import { forTree, getMembership } from './db.js';
 import { can } from './permissions.js';
-import { newId } from './audit.js';
+import { newId, sqlTime } from './audit.js';
 
 export const SET_ROLES = ['viewer', 'contributor'];
 const REMOVABLE = { owner: ['viewer', 'contributor', 'admin'], admin: ['viewer', 'contributor'] };
@@ -15,12 +15,13 @@ async function gate(db, treeId, actorId) {
   return m && can(m.role, 'member.remove') ? m : null;
 }
 
-export async function listMembers(db, { treeId, actorId }) {
+export async function listMembers(db, { treeId, actorId, now = new Date() }) {
   if (!(await gate(db, treeId, actorId))) return fail('forbidden');
   const rows = await forTree(db, treeId).all(
-    "SELECT m.account_id, m.role, m.created_at, a.display_name, a.email, a.login_link FROM memberships m JOIN accounts a ON a.id = m.account_id WHERE m.tree_id = ?1 AND m.status = 'active' ORDER BY CASE m.role WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 WHEN 'contributor' THEN 2 ELSE 3 END, a.display_name, m.account_id"
+    "SELECT m.account_id, m.role, m.created_at, a.display_name, a.email, a.login_link, (SELECT MAX(s.expires_at) FROM sessions s WHERE s.account_id = m.account_id AND s.expires_at > ?2) AS sess FROM memberships m JOIN accounts a ON a.id = m.account_id WHERE m.tree_id = ?1 AND m.status = 'active' ORDER BY CASE m.role WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 WHEN 'contributor' THEN 2 ELSE 3 END, a.display_name, m.account_id",
+    [sqlTime(now)]
   );
-  return { ok: true, members: rows.map((r) => ({ accountId: r.account_id, name: r.display_name || 'Anggota', email: r.login_link ? null : r.email, guest: r.login_link === 1, role: r.role, since: r.created_at, self: r.account_id === actorId })) };
+  return { ok: true, members: rows.map((r) => ({ accountId: r.account_id, name: r.display_name || 'Anggota', email: r.login_link ? null : r.email, guest: r.login_link === 1, sessionExpiresAt: r.sess ? `${r.sess.replace(' ', 'T')}Z` : null, role: r.role, since: r.created_at, self: r.account_id === actorId })) };
 }
 
 async function target(db, treeId, actorId, accountId, allowed) {

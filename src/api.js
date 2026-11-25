@@ -158,7 +158,7 @@ export async function handleApi(request, env, { now = new Date() } = {}) {
       if (!ID.test(rid)) return json({ ok: false, code: 'not_found' }, 404);
       const b = await needBody();
       if (b.bad) return json({ ok: false, code: b.bad }, b.status);
-      return reply(await decideJoinRequest(db, { treeId: id, requestId: rid, deciderId: me.id, action: b.v.action, role: b.v.role ?? null, now }), (x) => ({ ok: true, status: x.status }));
+      return reply(await decideJoinRequest(db, { treeId: id, requestId: rid, deciderId: me.id, action: b.v.action, role: b.v.role ?? null, reason: b.v.reason ?? null, now }), (x) => ({ ok: true, status: x.status }));
     }
     case 'guests': {
       const b = await needBody();
@@ -168,7 +168,7 @@ export async function handleApi(request, env, { now = new Date() } = {}) {
     case 'guest':
       if (!ID.test(rid)) return json({ ok: false, code: 'not_found' }, 404);
       return reply(await reissueGuest(db, { treeId: id, actorId: me.id, accountId: rid, now }), (x) => ({ ok: true, token: x.token }));
-    case 'members': return reply(await listMembers(db, { treeId: id, actorId: me.id }), (x) => ({ ok: true, members: x.members }));
+    case 'members': return reply(await listMembers(db, { treeId: id, actorId: me.id, now }), (x) => ({ ok: true, members: x.members }));
     case 'member': {
       if (!ID.test(rid)) return json({ ok: false, code: 'not_found' }, 404);
       const b = await needBody();
