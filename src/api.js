@@ -39,7 +39,7 @@ const json = (body, status = 200, extra = {}) =>
 const NOT_FOUND = ['invalid_link', 'not_found', 'target_not_found', 'person_not_found', 'partnership_not_found', 'edge_not_found', 'invalid_code'];
 const CONFLICT = [
   'tree_limit', 'needs_proposal', 'duplicate_partnership', 'duplicate_edge', 'would_create_cycle', 'blocked_bootstrap',
-  'too_many_guests', 'already_member', 'already_pending', 'too_many_pending', 'request_limit', 'join_failed', 'not_pending',
+  'too_many_guests', 'has_children', 'person_is_account', 'cannot_archive', 'already_member', 'already_pending', 'too_many_pending', 'request_limit', 'join_failed', 'not_pending',
 ];
 export const statusOf = (code) =>
   code === 'forbidden' ? 403 : NOT_FOUND.includes(code) ? 404 : CONFLICT.includes(code) ? 409 : 400;

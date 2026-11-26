@@ -15,7 +15,10 @@ import { checkDecision, closeStmts, expireDue } from './proposals.js';
 import { redactPerson } from './privacy.js';
 import { newId, sqlTime } from './audit.js';
 
-export const APPLY_KINDS = ['person_edit', 'person_create', 'partnership', 'parent_child'];
+export const APPLY_KINDS = ['person_edit', 'person_create', 'partnership', 'parent_child', 'archive'];
+
+// Anak (belum diarsipkan) dari seseorang. Orang yang punya anak tidak boleh diarsipkan supaya pohon tidak terputus (kecuali placeholder).
+const CHILD_SQL = 'SELECT 1 FROM parent_child_edges e JOIN people c ON c.id = e.child_id AND c.tree_id = e.tree_id WHERE e.tree_id = ?1 AND e.parent_id = ?2 AND c.archived_at IS NULL';
 
 // Hanya field ini yang boleh diubah lewat usulan. Pengaturan privasi (birth_visibility,
 // visibility_by_self) sengaja tidak ada: perubahannya lewat endpoint privasi sendiri.
@@ -337,6 +340,18 @@ async function prepareEdge(t, { after, role, now }) {
 }
 
 async function prepare(t, { kind, after, targetPersonId, role, now }) {
+  if (kind === 'archive') {
+    // "Hapus orang" = arsip (hapus lunak, tercatat di audit). Profil yang tertaut ke akun atau punya anak tidak bisa.
+    if (after === null || typeof after !== 'object' || Array.isArray(after)) return fail('invalid_payload');
+    if (Object.keys(after).some((k) => k !== 'reason')) return fail('unknown_field');
+    const rs = after.reason ?? null;
+    if (rs !== null && (typeof rs !== 'string' || chars(rs.trim()) > 300)) return fail('invalid_reason');
+    const tg = await loadTarget(t, targetPersonId);
+    if (!tg.ok) return tg;
+    if (await t.first('SELECT 1 AS x FROM account_person_links WHERE tree_id = ?1 AND person_id = ?2', [targetPersonId])) return fail('person_is_account');
+    if (tg.row.is_placeholder !== 1 && (await t.first(CHILD_SQL, [targetPersonId]))) return fail('has_children');
+    return { ok: true, kind, action: 'archive', v: {}, row: tg.row, id: targetPersonId, reason: rs === null ? null : rs.trim() || null, warnings: [] };
+  }
   if (kind === 'parent_child') return prepareEdge(t, { after, role, now });
   if (kind === 'partnership') {
     const c = cleanPartnership(after);
@@ -461,6 +476,23 @@ function plan(t, p, { proposalId, actor, createdBy }) {
       auditStmt(t, { type: 'parent_child', actor, action: 'parent_child.update', target: id, before, after: v, note }, proposalId),
     ];
   }
+  if (p.kind === 'archive') {
+    const G = guard(3, proposalId);
+    const GA = guard(7, proposalId);
+    return [
+      t.stmt(
+        `UPDATE people SET archived_at = datetime('now'), version = version + 1, updated_at = datetime('now') WHERE tree_id = ?1 AND id = ?2 AND archived_at IS NULL AND (is_placeholder = 1 OR NOT EXISTS (${CHILD_SQL})) AND NOT EXISTS (SELECT 1 FROM account_person_links WHERE tree_id = ?1 AND person_id = ?2) AND ${G.sql}`,
+        [id, ...G.p]
+      ),
+      t.stmt(
+        `INSERT INTO audit_events (id, tree_id, actor_id, action, target_type, target_id, before_json, approval_note) SELECT ?3, ?1, ?4, 'person.archive', 'person', id, json_object('display_name', display_name, 'reason', ?6), ?5 FROM people WHERE tree_id = ?1 AND id = ?2 AND archived_at IS NOT NULL AND ${GA.sql}`,
+        [id, newId(), actor, note, p.reason ?? null, ...GA.p]
+      ),
+      // Pagar: bila orangnya masih belum diarsipkan padahal usulan masih pending (balapan: anak baru masuk), batalkan seluruh batch.
+      t.stmt(`SELECT abs(-9223372036854775808) WHERE ${G.sql} AND EXISTS (SELECT 1 FROM people WHERE tree_id = ?1 AND id = ?2 AND archived_at IS NULL)`, [id, ...G.p]),
+      ...staleStmts(t, id, proposalId),
+    ];
+  }
   if (p.kind === 'person_edit') {
     const G = guard(ks.length + 3, proposalId);
     const reset = p.fills ? ', is_placeholder = 0, placeholder_of = NULL' : '';
@@ -500,12 +532,15 @@ async function runBatch(db, kind, stmts) {
     if (kind === 'partnership' && /UNIQUE/i.test(msg)) return fail('duplicate_partnership');
     if (kind === 'parent_child' && /UNIQUE/i.test(msg)) return fail('duplicate_edge');
     if (kind === 'parent_child' && /integer overflow/i.test(msg)) return fail('would_create_cycle');
+    if (kind === 'archive' && /integer overflow/i.test(msg)) return fail('cannot_archive');
     throw e;
   }
 }
 
 const idOut = (p) =>
-  p.kind === 'partnership'
+  p.kind === 'archive'
+    ? { personId: p.id, archived: true }
+    : p.kind === 'partnership'
     ? { partnershipId: p.id }
     : p.kind === 'parent_child'
       ? { edgeId: p.id, ...(p.newPerson ? { personId: p.newPerson.id } : {}) }
