@@ -637,7 +637,7 @@ function adopt(j){
 S.people={};S.par=[];S.sp=[];
 j.people.forEach(p=>{S.people[p.id]={n:p.name,y:p.birth.year!=null?String(p.birth.year):'',ap:p.birth.precision==='approx',w:p.death.year!=null?String(p.death.year):'',c:p.confirmation==='confirmed'?1:0,g:p.gender==='male'?'L':p.gender==='female'?'P':'',u:p.isPlaceholder?1:0,ph:p.isPlaceholder?1:0,bd:mdate(p.birth),wd:mdate(p.death),sn:p.sourceNote||''};});
 j.parentChild.forEach(e=>S.par.push({id:e.id,c:e.child,p:e.parent,t:ID_T[e.type]||'biologis'}));
-j.partnerships.forEach(s=>{const o={id:s.id,a:s.a,b:s.b,t:s.status==='divorced'||s.status==='separated'?'cerai':'menikah'};if(s.startYear!=null)o.y=String(s.startYear);if(o.t==='cerai'&&s.endYear!=null)o.ya=String(s.endYear);S.sp.push(o);});
+j.partnerships.forEach(s=>{const o={id:s.id,a:s.a,b:s.b,t:s.status==='unknown'?'tidak':s.status==='divorced'||s.status==='separated'?'cerai':'menikah'};if(s.startYear!=null)o.y=String(s.startYear);if(o.t==='cerai'&&s.endYear!=null)o.ya=String(s.endYear);S.sp.push(o);});
 S.role=j.role;S.boot=j.bootstrap;S.me=j.me;S.tid=j.tree.id;S.tname=j.tree.name;}
 async function reload(){const r=await http('/api/trees/'+S.tid);if(r.status!==200)throw{code:r.j.code||'error'};adopt(r.j);}
 async function refreshTrees(){const r=await http('/api/trees');S.trees=r.status===200?r.j.trees:[];S.pend=r.status===200?(r.j.pending||[]):[];hmSync();S.rejd=r.status===200?(r.j.rejected||[]):[];}
