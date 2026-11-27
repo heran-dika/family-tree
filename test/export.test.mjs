@@ -14,12 +14,12 @@ function env() {
     INSERT INTO memberships(tree_id,account_id,role,status) VALUES
       ('t1','owner','owner','active'),('t1','admin','admin','active'),('t1','contrib','contributor','active'),
       ('t1','viewer','viewer','active'),('t1','gone','admin','removed'),('t2','owner','owner','active');
-    INSERT INTO people(id,tree_id,display_name,nickname,gender,birth_date,birth_precision,birth_visibility,visibility_by_self,death_date,death_precision,source_note,confirmation) VALUES
-      ('a','t1','Ahmad','Mad','male','1962-03-04','full','full',0,NULL,'unknown','akta','confirmed'),
-      ('b','t1','Siti',NULL,'female','1965','year','year',0,'2020-01-02','full',NULL,'unverified'),
-      ('c','t1','Rahasia',NULL,NULL,'1990-05-17','full','hidden',1,NULL,'unknown',NULL,'unverified'),
-      ('k','t1','Kecil',NULL,NULL,'2018-06-07','full','year',0,NULL,'unknown',NULL,'unverified'),
-      ('z','t2','Orang Lain',NULL,NULL,'1970-01-01','full','full',1,NULL,'unknown',NULL,'unverified');
+    INSERT INTO people(id,tree_id,display_name,gender,birth_date,birth_precision,birth_visibility,visibility_by_self,death_date,death_precision,source_note,confirmation) VALUES
+      ('a','t1','Ahmad','male','1962-03-04','full','full',0,NULL,'unknown','akta','confirmed'),
+      ('b','t1','Siti','female','1965','year','year',0,'2020-01-02','full',NULL,'unverified'),
+      ('c','t1','Rahasia',NULL,'1990-05-17','full','hidden',1,NULL,'unknown',NULL,'unverified'),
+      ('k','t1','Kecil',NULL,'2018-06-07','full','year',0,NULL,'unknown',NULL,'unverified'),
+      ('z','t2','Orang Lain',NULL,'1970-01-01','full','full',1,NULL,'unknown',NULL,'unverified');
     INSERT INTO people(id,tree_id,display_name,is_placeholder,placeholder_of,archived_at) VALUES ('ph','t1','Ayah dari Ahmad',1,'a',NULL),('ar','t1','Diarsipkan',0,NULL,'2026-01-01');
     INSERT INTO parent_child_edges(id,tree_id,parent_id,child_id,relation_type,parent_role) VALUES
       ('e1','t1','ph','a','biological','father'),('e2','t1','a','k','adoptive','mother');
@@ -71,7 +71,6 @@ test('placeholder, arsip, nama panggilan, sumber, dan konfirmasi ikut; email aku
   assert.equal(person(doc, 'ph').isPlaceholder, true);
   assert.equal(person(doc, 'ph').placeholderOf, 'a');
   assert.equal(person(doc, 'ar').archived, true);
-  assert.equal(person(doc, 'a').nickname, 'Mad');
   assert.equal(person(doc, 'a').sourceNote, 'akta');
   assert.equal(person(doc, 'a').confirmation, 'confirmed');
   const s = JSON.stringify(doc);

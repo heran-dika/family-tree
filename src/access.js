@@ -131,6 +131,16 @@ export async function listJoinRequests(db, { treeId, actorId }) {
   return { ok: true, requests: rows.map((r) => ({ id: r.id, name: r.display_name || r.email.split('@')[0], email: r.email, message: r.message ?? null, createdAt: r.created_at })) };
 }
 
+// Permintaan yang ditolak dalam 7 hari terakhir (dengan alasan), disembunyikan bila pemohon sudah mengajukan lagi.
+export async function myRejectedRequests(db, accountId, now = new Date()) {
+  const since = sqlTime(new Date(now.getTime() - 7 * 86400000));
+  const { results } = await db
+    .prepare("SELECT jr.id, t.name, jr.reason, jr.decided_at FROM join_requests jr JOIN family_trees t ON t.id = jr.tree_id WHERE jr.account_id = ?1 AND jr.status = 'rejected' AND jr.decided_at > ?2 AND NOT EXISTS (SELECT 1 FROM join_requests j2 WHERE j2.account_id = jr.account_id AND j2.tree_id = jr.tree_id AND j2.created_at > jr.created_at) ORDER BY jr.decided_at DESC, jr.id LIMIT 5")
+    .bind(accountId ?? '', since)
+    .all();
+  return results.map((r) => ({ id: r.id, treeName: r.name, reason: r.reason ?? null, decidedAt: r.decided_at }));
+}
+
 // Permintaan menunggu milik akun ini (untuk kartu "Menunggu persetujuan" di Home).
 export async function myJoinRequests(db, accountId) {
   const { results } = await db

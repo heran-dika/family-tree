@@ -17,16 +17,17 @@ import { newId, sqlTime } from './audit.js';
 
 export const APPLY_KINDS = ['person_edit', 'person_create', 'partnership', 'parent_child', 'archive'];
 
-// Anak (belum diarsipkan) dari seseorang. Orang yang punya anak tidak boleh diarsipkan supaya pohon tidak terputus (kecuali placeholder).
-const CHILD_SQL = 'SELECT 1 FROM parent_child_edges e JOIN people c ON c.id = e.child_id AND c.tree_id = e.tree_id WHERE e.tree_id = ?1 AND e.parent_id = ?2 AND c.archived_at IS NULL';
+// Anak (belum diarsipkan) yang HANYA punya orang tua ini. Bila anak masih punya orang tua lain, ia tetap menempel ke yang lain (sisi yang dihapus jadi "belum diketahui").
+// Anak yang akan yatim sepenuhnya menghalangi arsip supaya pohon tidak terputus (kecuali orang yang diarsipkan adalah placeholder).
+const CHILD_SQL = 'SELECT 1 FROM parent_child_edges e JOIN people c ON c.id = e.child_id AND c.tree_id = e.tree_id WHERE e.tree_id = ?1 AND e.parent_id = ?2 AND c.archived_at IS NULL AND NOT EXISTS (SELECT 1 FROM parent_child_edges e2 JOIN people p2 ON p2.id = e2.parent_id AND p2.tree_id = e2.tree_id WHERE e2.tree_id = e.tree_id AND e2.child_id = e.child_id AND e2.parent_id <> e.parent_id AND p2.archived_at IS NULL)';
 
 // Hanya field ini yang boleh diubah lewat usulan. Pengaturan privasi (birth_visibility,
 // visibility_by_self) sengaja tidak ada: perubahannya lewat endpoint privasi sendiri.
 const FIELDS = [
-  'display_name', 'nickname', 'gender', 'confirmation', 'source_note',
+  'display_name', 'gender', 'confirmation', 'source_note',
   'birth_date', 'birth_precision', 'death_date', 'death_precision',
 ];
-const TEXT_MAX = { display_name: 200, nickname: 100, source_note: 500 };
+const TEXT_MAX = { display_name: 200, source_note: 500 };
 const ENUMS = {
   gender: ['male', 'female'],
   confirmation: ['unverified', 'confirmed'],

@@ -41,3 +41,9 @@ test('balapan: anak baru masuk tepat sebelum batch, orang tidak diarsipkan dan u
   const r = await approveAndApply(e.db, { treeId: 't', proposalId: p.id, deciderId: 'o', now });
   assert.equal(r.code, 'cannot_archive'); assert.equal(e.p('k1').archived_at, null); assert.equal(e.sqlite.prepare('select status from proposals where id=?').get(p.id).status, 'pending');
 });
+test('anak yang masih punya orang tua lain: orang tuanya boleh dihapus, anak tetap menempel ke yang lain', async () => {
+  const e = env();
+  e.sqlite.exec("INSERT INTO people(id,tree_id,display_name) VALUES ('ib','t','Ibu'); INSERT INTO parent_child_edges(id,tree_id,parent_id,child_id,relation_type,parent_role) VALUES ('e5','t','ib','k1','biological','mother')");
+  assert.equal((await arch(e, 'pa')).ok, true); assert.ok(e.p('pa').archived_at); assert.equal(e.p('k1').archived_at, null);
+  assert.equal((await arch(e, 'ib')).code, 'has_children');
+});

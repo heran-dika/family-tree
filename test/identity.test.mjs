@@ -71,7 +71,7 @@ test('mengubah field lain saja, atau nama yang sama, tidak melepas penanda place
   const r1 = await fill(e, ph.personId, { gender: 'male' });
   assert.equal(r1.ok, true);
   assert.equal('identityFilled' in r1, false);
-  const r2 = await fill(e, ph.personId, { display_name: 'Ayah dari Budi', nickname: 'Pak' });
+  const r2 = await fill(e, ph.personId, { display_name: 'Ayah dari Budi', source_note: 'Pak' });
   assert.equal('identityFilled' in r2, false);
   const p = e.person(ph.personId);
   assert.deepEqual([p.is_placeholder, p.placeholder_of, p.gender], [1, 'anak', 'male']);
@@ -107,7 +107,7 @@ test('izin dan jalur: Contributor langsung ditolak, Viewer ditolak, usulan lain 
   assert.equal((await fill(e, 'ph2', { display_name: 'X' }, 'contrib', 't2')).code, 'needs_proposal');
   assert.equal((await fill(e, 'ph2', { display_name: 'X' }, 'viewer', 't2')).code, 'forbidden');
   assert.equal(e.person('ph2').is_placeholder, 1);
-  const other = await createProposal(e.db, { treeId: 't2', proposerId: 'contrib', kind: 'person_edit', targetPersonId: 'ph2', after: { nickname: 'Pak' }, now: T0 });
+  const other = await createProposal(e.db, { treeId: 't2', proposerId: 'contrib', kind: 'person_edit', targetPersonId: 'ph2', after: { source_note: 'Pak' }, now: T0 });
   assert.equal((await fill(e, 'ph2', { display_name: 'Hasan Basri' }, 'admin', 't2')).ok, true);
   assert.equal(e.sqlite.prepare('SELECT status FROM proposals WHERE id = ?').get(other.id).status, 'stale');
 });

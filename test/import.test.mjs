@@ -5,7 +5,7 @@ import { MAX_IMPORT_BYTES, MAX_PEOPLE, MAX_ROWS, validateImport } from '../src/i
 const NOW = new Date('2026-11-20T10:00:00Z');
 const U = { precision: 'unknown', year: null, date: null };
 const P = (id, over = {}) => ({
-  id, name: `Orang ${id}`, nickname: null, gender: null, confirmation: 'unverified', sourceNote: null,
+  id, name: `Orang ${id}`, gender: null, confirmation: 'unverified', sourceNote: null,
   isPlaceholder: false, placeholderOf: null, archived: false, birth: U, death: U, ...over,
 });
 const doc = (over = {}) => ({

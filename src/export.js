@@ -37,7 +37,7 @@ export async function exportTree(db, { treeId, actorId, now = new Date() }) {
     people: people.map((r) => {
       const p = redactPerson(r, viewer, now);
       return {
-        id: p.id, name: p.name, nickname: p.nickname, gender: p.gender, confirmation: p.confirmation,
+        id: p.id, name: p.name, gender: p.gender, confirmation: p.confirmation,
         sourceNote: p.sourceNote, isPlaceholder: p.isPlaceholder, placeholderOf: r.placeholder_of ?? null,
         archived: p.archived, birth: p.birth, death: p.death,
       };

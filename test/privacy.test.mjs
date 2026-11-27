@@ -7,7 +7,7 @@ import { effectiveLevel, isMinor, redactPerson, redactSnapshot } from '../src/pr
 const NOW = new Date('2026-11-19T12:00:00Z');
 const ROLES = ['viewer', 'contributor', 'admin', 'owner'];
 const base = {
-  id: 'p1', display_name: 'Budi', nickname: 'Bud', gender: 'male', confirmation: 'confirmed',
+  id: 'p1', display_name: 'Budi', gender: 'male', confirmation: 'confirmed',
   source_note: 'akta', is_placeholder: 0, archived_at: null,
   birth_date: '1990-05-17', birth_precision: 'full', birth_visibility: 'year', visibility_by_self: 0,
   death_date: null, death_precision: 'unknown',
@@ -123,7 +123,6 @@ test('nama, panggilan, placeholder, arsip, dan tanggal meninggal tetap terlihat 
   });
   const r = redactPerson(p, as('viewer'), NOW);
   assert.equal(r.name, 'Budi');
-  assert.equal(r.nickname, 'Bud');
   assert.equal(r.isPlaceholder, true);
   assert.equal(r.archived, true);
   assert.deepEqual(r.death, { precision: 'full', year: 2020, date: '2020-02-03' });
@@ -179,7 +178,7 @@ test('snapshot: usulan yang mengubah visibilitas ke "full" tidak bisa dipakai me
 });
 
 test('snapshot tanpa field tanggal lahir tidak disentuh; orang baru memakai bawaan tahun saja', () => {
-  assert.deepEqual(redactSnapshot({ nickname: 'Bud' }, person(), as('viewer'), NOW), { values: { nickname: 'Bud' }, masked: [] });
+  assert.deepEqual(redactSnapshot({ source_note: 'x' }, person(), as('viewer'), NOW), { values: { source_note: 'x' }, masked: [] });
   const created = redactSnapshot({ display_name: 'Baru', birth_date: '1999-09-09', birth_precision: 'full' }, null, as('viewer'), NOW);
   assert.equal(created.values.birth_date, '1999');
 });

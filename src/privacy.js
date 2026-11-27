@@ -82,7 +82,6 @@ export function redactPerson(person, viewer, now = new Date()) {
   return {
     id: person.id,
     name: person.display_name,
-    nickname: person.nickname ?? null,
     gender: person.gender ?? null,
     confirmation: person.confirmation ?? 'unverified',
     sourceNote: person.source_note ?? null,

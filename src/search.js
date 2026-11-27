@@ -35,7 +35,7 @@ function score(f, q, tokens) {
   return null;
 }
 
-const FIELDS = ['name', 'nickname', 'variant'];
+const FIELDS = ['name', 'variant'];
 // Hasil pencarian hanya memuat tahun. 'full' dijadikan 'year' supaya presisi pun tidak memberi tahu bahwa ada tanggal lengkap.
 const yearOnly = (d) => ({ precision: d.precision === 'full' ? 'year' : d.precision, year: d.year });
 
@@ -67,8 +67,7 @@ export async function searchPeople(db, { treeId, actorId, query, limit, now = ne
     };
     const name = norm(p.display_name);
     consider(name, 0, null);
-    consider(norm(p.nickname), 1, null);
-    for (const v of variants.get(p.id) ?? []) consider(norm(v), 2, v);
+    for (const v of variants.get(p.id) ?? []) consider(norm(v), 1, v);
     if (best) hits.push({ p, name, ...best });
   }
   hits.sort((a, b) => a.sc - b.sc || a.field - b.field || (a.name < b.name ? -1 : a.name > b.name ? 1 : a.p.id < b.p.id ? -1 : 1));
@@ -81,11 +80,11 @@ export async function searchPeople(db, { treeId, actorId, query, limit, now = ne
   const results = page.map((h) => {
     const r = redactPerson(h.p, viewer, now);
     return {
-      id: r.id, name: r.name, nickname: r.nickname, isPlaceholder: r.isPlaceholder,
+      id: r.id, name: r.name, isPlaceholder: r.isPlaceholder,
       birth: yearOnly(r.birth),
       death: yearOnly(r.death),
       matchedOn: FIELDS[h.field],
-      ...(h.field === 2 ? { variant: h.shown } : {}),
+      ...(h.field === 1 ? { variant: h.shown } : {}),
     };
   });
   return { ok: true, results, total: hits.length, truncated: hits.length > lim };

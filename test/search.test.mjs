@@ -13,14 +13,14 @@ function env() {
     INSERT INTO memberships(tree_id,account_id,role,status) VALUES
       ('t1','owner','owner','active'),('t1','admin','admin','active'),('t1','contrib','contributor','active'),
       ('t1','viewer','viewer','active'),('t1','gone','admin','removed'),('t2','owner','owner','active');
-    INSERT INTO people(id,tree_id,display_name,nickname,birth_date,birth_precision,birth_visibility,visibility_by_self,death_date,death_precision) VALUES
-      ('a','t1','Ahmad Fauzi Rahman','Mad','1962-03-04','full','full',0,NULL,'unknown'),
-      ('b','t1','Siti Rohmah','Ummi','1965','year','year',0,'2020-01-02','full'),
-      ('c','t1','Ma''ruf Hidayat',NULL,NULL,'unknown','year',0,NULL,'unknown'),
-      ('d','t1','José Álvarez Muñoz',NULL,NULL,'unknown','year',0,NULL,'unknown'),
-      ('e','t1','Rahasia Budi',NULL,'1990-05-17','full','hidden',1,NULL,'unknown'),
-      ('f','t1','Anak Kecil',NULL,'2018-06-07','full','year',0,NULL,'unknown'),
-      ('z','t2','Ahmad Lain','Lainnya','1970-01-01','full','full',1,NULL,'unknown');
+    INSERT INTO people(id,tree_id,display_name,birth_date,birth_precision,birth_visibility,visibility_by_self,death_date,death_precision) VALUES
+      ('a','t1','Ahmad Fauzi Rahman','1962-03-04','full','full',0,NULL,'unknown'),
+      ('b','t1','Siti Rohmah','1965','year','year',0,'2020-01-02','full'),
+      ('c','t1','Ma''ruf Hidayat',NULL,'unknown','year',0,NULL,'unknown'),
+      ('d','t1','José Álvarez Muñoz',NULL,'unknown','year',0,NULL,'unknown'),
+      ('e','t1','Rahasia Budi','1990-05-17','full','hidden',1,NULL,'unknown'),
+      ('f','t1','Anak Kecil','2018-06-07','full','year',0,NULL,'unknown'),
+      ('z','t2','Ahmad Lain','1970-01-01','full','full',1,NULL,'unknown');
     INSERT INTO people(id,tree_id,display_name,archived_at) VALUES ('g','t1','Ahmad Arsip','2026-01-01');
     INSERT INTO name_variants(id,tree_id,person_id,variant) VALUES
       ('v1','t1','a','Achmad'),('v2','t1','a','Ahmat'),('v3','t1','g','Ahmad Lama'),('v4','t2','z','Achmad Lain');
@@ -44,14 +44,6 @@ test('hanya anggota aktif yang boleh mencari; semua peran boleh', async () => {
   const e = env();
   for (const who of ['out', 'gone', 'nope']) assert.deepEqual(await find(e, 'ahmad', who), { ok: false, code: 'forbidden' }, who);
   for (const who of ['viewer', 'contrib', 'admin', 'owner']) assert.deepEqual(ids(await find(e, 'ahmad', who)), ['a'], who);
-});
-
-test('nama panggilan menemukan profil (penerimaan P0-1)', async () => {
-  const e = env();
-  const r = await find(e, 'ummi');
-  assert.deepEqual(ids(r), ['b']);
-  assert.equal(r.results[0].matchedOn, 'nickname');
-  assert.equal(r.results[0].name, 'Siti Rohmah');
 });
 
 test('tidak peka huruf besar dan aksen, dua arah', async () => {
@@ -153,9 +145,9 @@ test('urutan hasil: persis, awalan, awalan kata, mengandung; lalu nama dan id', 
   assert.deepEqual(r.results.map((x) => x.name), ['Budi', 'Budiman', 'Rahasia Budi', 'Sri Budi', 'Rabudi']);
 });
 
-test('urutan hasil: skor sama, kecocokan nama utama mendahului panggilan walau namanya lebih akhir secara abjad', async () => {
+test('urutan hasil: skor sama, kecocokan nama utama mendahului variasi ejaan walau namanya lebih akhir secara abjad', async () => {
   const e = env();
-  e.sqlite.exec("INSERT INTO people(id,tree_id,display_name,nickname) VALUES ('n1','t1','Aaron','Madiun'),('n2','t1','Madina',NULL)");
+  e.sqlite.exec("INSERT INTO people(id,tree_id,display_name) VALUES ('n1','t1','Aaron'),('n2','t1','Madina'); INSERT INTO name_variants(id,tree_id,person_id,variant) VALUES ('nv1','t1','n1','Madiun')");
   assert.deepEqual(ids(await find(e, 'madi')), ['n2', 'n1']);
 });
 
@@ -201,9 +193,9 @@ test('hanya membaca sekali per tabel (tanpa N+1), dan tidak menulis apa pun', as
 test('uji beban: 2.000 orang dengan 2.000 varian', async () => {
   const e = env();
   e.sqlite.exec('BEGIN');
-  const ins = e.sqlite.prepare("INSERT INTO people(id,tree_id,display_name,nickname) VALUES (?,?,?,?)");
+  const ins = e.sqlite.prepare("INSERT INTO people(id,tree_id,display_name) VALUES (?,?,?)");
   const vin = e.sqlite.prepare("INSERT INTO name_variants(id,tree_id,person_id,variant) VALUES (?,?,?,?)");
-  for (let i = 0; i < 2000; i++) { ins.run(`x${i}`, 't1', `Nama Panjang Orang ${i} Hidayat`, `Pnl${i}`); vin.run(`xv${i}`, 't1', `x${i}`, `Varian ${i}`); }
+  for (let i = 0; i < 2000; i++) { ins.run(`x${i}`, 't1', `Nama Panjang Orang ${i} Hidayat`); vin.run(`xv${i}`, 't1', `x${i}`, `Varian ${i}`); }
   e.sqlite.exec('COMMIT');
   const t = performance.now();
   const r = await find(e, 'hidayat');

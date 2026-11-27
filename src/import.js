@@ -15,7 +15,7 @@ const MAX_ID = 64;
 
 const isObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const TOP = ['format', 'version', 'exportedAt', 'tree', 'people', 'nameVariants', 'parentChild', 'partnerships'];
-const PERSON = ['id', 'name', 'nickname', 'gender', 'confirmation', 'sourceNote', 'isPlaceholder', 'placeholderOf', 'archived', 'birth', 'death'];
+const PERSON = ['id', 'name', 'gender', 'confirmation', 'sourceNote', 'isPlaceholder', 'placeholderOf', 'archived', 'birth', 'death'];
 const DATE_KEYS = ['precision', 'year', 'date', 'month'];
 const PRECISIONS = ['full', 'year', 'approx', 'unknown', 'hidden'];
 
@@ -95,7 +95,7 @@ export function validateImport(input, { now = new Date() } = {}) {
     const d = datePart(r.death, `${path}.death`, false);
     if (!b || !d) return;
     const c = cleanFields({
-      display_name: r.name, nickname: r.nickname ?? null, gender: r.gender ?? null,
+      display_name: r.name, gender: r.gender ?? null,
       confirmation: r.confirmation ?? 'unverified', source_note: r.sourceNote ?? null,
       birth_date: b.date, birth_precision: b.precision, death_date: d.date, death_precision: d.precision,
     }, { create: true });

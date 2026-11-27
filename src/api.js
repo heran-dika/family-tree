@@ -20,7 +20,8 @@
 
 import { getSession } from './auth.js';
 import { applyDirect } from './apply.js';
-import { accessCodeStatus, createAccessCode, decideJoinRequest, listJoinRequests, lookupAccessCode, myJoinRequests, requestJoin, revokeAccessCode } from './access.js';
+import { accessCodeStatus, createAccessCode, decideJoinRequest, listJoinRequests, lookupAccessCode, myJoinRequests, myRejectedRequests, requestJoin, revokeAccessCode } from './access.js';
+import { forTree } from './db.js';
 import { createGuest, guestLogin, reissueGuest } from './guest.js';
 import { listMembers, removeMember, setMemberRole } from './members.js';
 import { findDuplicates } from './duplicates.js';
@@ -108,7 +109,7 @@ export async function handleApi(request, env, { now = new Date() } = {}) {
   const needBody = async () => body(request);
 
   if (hit.name === 'trees') {
-    if (method === 'GET') return json({ trees: await listTrees(db, me.id), pending: await myJoinRequests(db, me.id) });
+    if (method === 'GET') return json({ trees: await listTrees(db, me.id), pending: await myJoinRequests(db, me.id), rejected: await myRejectedRequests(db, me.id, now) });
     const b = await needBody();
     if (b.bad) return json({ ok: false, code: b.bad }, b.status);
     const r = await createTree(db, { accountId: me.id, name: b.v.name, selfName: b.v.selfName, selfGender: b.v.selfGender ?? null });
@@ -126,7 +127,13 @@ export async function handleApi(request, env, { now = new Date() } = {}) {
   if (!ID.test(id)) return json({ ok: false, code: 'not_found' }, 404);
 
   switch (hit.name) {
-    case 'tree': return reply(await readTree(db, { treeId: id, accountId: me.id, now }), (x) => x);
+    case 'tree': {
+      const r = await readTree(db, { treeId: id, accountId: me.id, now });
+      if (!r.ok) return fail(r);
+      // catatan sumber (tidak ada di readTree): tidak disamarkan privasi, hanya untuk anggota yang sudah lolos readTree
+      const notes = new Map((await forTree(db, id).all('SELECT id, source_note FROM people WHERE tree_id = ?1 AND archived_at IS NULL AND source_note IS NOT NULL')).map((n) => [n.id, n.source_note]));
+      return json({ ...r, people: r.people.map((p) => (notes.has(p.id) ? { ...p, sourceNote: notes.get(p.id) } : p)) });
+    }
     case 'changes': {
       const b = await needBody();
       if (b.bad) return json({ ok: false, code: b.bad }, b.status);

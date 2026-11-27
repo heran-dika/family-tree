@@ -71,7 +71,7 @@ test('cleanFields: nama, panjang teks, enum, dan pembersihan', () => {
   assert.equal(cleanFields({ display_name: 5 }).code, 'invalid_display_name');
   assert.equal(cleanFields({ gender: 'x' }).code, 'invalid_gender');
   assert.equal(cleanFields({ confirmation: null }).code, 'invalid_confirmation');
-  assert.deepEqual(cleanFields({ display_name: ' A ', nickname: '  ', gender: null }).values, { display_name: 'A', nickname: null, gender: null });
+  assert.deepEqual(cleanFields({ display_name: ' A ', source_note: '  ', gender: null }).values, { display_name: 'A', source_note: null, gender: null });
   assert.equal(cleanFields({ display_name: '😀'.repeat(200) }).ok, true);
 });
 
@@ -89,7 +89,7 @@ test('cleanFields: tanggal harus berpasangan dengan presisi dan konsisten', () =
 });
 
 test('cleanFields: create wajib nama, edit tidak boleh kosong', () => {
-  assert.equal(cleanFields({ nickname: 'x' }, { create: true }).code, 'name_required');
+  assert.equal(cleanFields({ source_note: 'x' }, { create: true }).code, 'name_required');
   assert.equal(cleanFields({}).code, 'empty_change');
   assert.equal(cleanFields(null).code, 'invalid_payload');
   assert.equal(cleanFields([]).code, 'invalid_payload');
@@ -109,20 +109,20 @@ test('softWarnings: meninggal sebelum lahir dan usia di atas 120, tanpa membloki
 
 test('setujui person_edit: data berubah, versi naik, audit sebelum/sesudah, usulan ditutup', async () => {
   const e = env();
-  const { id } = await propose(e, { after: { display_name: 'Budi Santoso', nickname: 'Bud' } });
+  const { id } = await propose(e, { after: { display_name: 'Budi Santoso', source_note: 'Bud' } });
   const r = await approve(e, id);
   assert.equal(r.ok, true);
   assert.equal(r.personId, 'p1');
   const p = e.person('p1');
   assert.equal(p.display_name, 'Budi Santoso');
-  assert.equal(p.nickname, 'Bud');
+  assert.equal(p.source_note, 'Bud');
   assert.equal(p.version, 2);
   assert.equal(e.prop(id).status, 'approved');
   const a = e.sqlite.prepare("SELECT * FROM audit_events WHERE action='person.update'").get();
   assert.equal(a.target_id, 'p1');
   assert.equal(a.actor_id, 'admin');
-  assert.deepEqual(JSON.parse(a.before_json), { display_name: 'Budi', nickname: null });
-  assert.deepEqual(JSON.parse(a.after_json), { display_name: 'Budi Santoso', nickname: 'Bud' });
+  assert.deepEqual(JSON.parse(a.before_json), { display_name: 'Budi', source_note: null });
+  assert.deepEqual(JSON.parse(a.after_json), { display_name: 'Budi Santoso', source_note: 'Bud' });
   assert.equal(a.approval_note, `proposal:${id}`);
   assert.equal(e.audits('proposal.approve'), 1);
 });
@@ -139,7 +139,7 @@ test('setujui person_edit: pengaturan privasi tidak tersentuh', async () => {
 test('setujui: usulan lain pada orang yang sama menjadi stale, yang tanpa target tidak', async () => {
   const e = env();
   const a = await propose(e);
-  const b = await propose(e, { after: { nickname: 'B' } });
+  const b = await propose(e, { after: { source_note: 'B' } });
   const c = await propose(e, { kind: 'person_create', targetPersonId: null, after: { display_name: 'Baru' } });
   await approve(e, a.id);
   assert.equal(e.prop(b.id).status, 'stale');
@@ -166,8 +166,8 @@ test('setujui person_create: orang baru dibuat oleh pengaju, bawaan terisi, audi
 
 test('jenis yang belum didukung: ditolak sebelum usulan ditutup, data utuh', async () => {
   const e = env();
-  assert.deepEqual(APPLY_KINDS, ['person_edit', 'person_create', 'partnership', 'parent_child']);
-  for (const kind of [ 'archive', 'archive_restore', 'merge', 'unmerge']) {
+  assert.deepEqual(APPLY_KINDS, ['person_edit', 'person_create', 'partnership', 'parent_child', 'archive']);
+  for (const kind of ['archive_restore', 'merge', 'unmerge']) {
     const { id } = await propose(e, { kind, targetPersonId: null, after: { x: 1 } });
     assert.equal((await approve(e, id)).code, 'kind_not_supported', kind);
     assert.equal(e.prop(id).status, 'pending', kind);
@@ -261,9 +261,9 @@ test('peringatan lunak dikembalikan tapi tidak memblokir penerapan', async () =>
 test('langsung: Admin dan Owner mengubah dan membuat tanpa usulan, tercatat di audit', async () => {
   const e = env();
   for (const who of ['admin', 'owner']) {
-    const r = await applyDirect(e.db, { treeId: 't1', actorId: who, kind: 'person_edit', targetPersonId: 'p1', after: { nickname: who }, now: T0 });
+    const r = await applyDirect(e.db, { treeId: 't1', actorId: who, kind: 'person_edit', targetPersonId: 'p1', after: { source_note: who }, now: T0 });
     assert.equal(r.ok, true, who);
-    assert.equal(e.person('p1').nickname, who);
+    assert.equal(e.person('p1').source_note, who);
   }
   const c = await applyDirect(e.db, { treeId: 't1', actorId: 'admin', kind: 'person_create', after: { display_name: 'Baru' }, now: T0 });
   assert.equal(c.ok, true);
@@ -275,12 +275,12 @@ test('langsung: Admin dan Owner mengubah dan membuat tanpa usulan, tercatat di a
 
 test('langsung: Contributor diarahkan ke usulan, Viewer dan orang luar ditolak, jenis lain tidak didukung', async () => {
   const e = env();
-  const d = (who, kind = 'person_edit') => applyDirect(e.db, { treeId: 't1', actorId: who, kind, targetPersonId: 'p1', after: { nickname: 'x' }, now: T0 });
+  const d = (who, kind = 'person_edit') => applyDirect(e.db, { treeId: 't1', actorId: who, kind, targetPersonId: 'p1', after: { source_note: 'x' }, now: T0 });
   assert.equal((await d('contrib')).code, 'needs_proposal');
   assert.equal((await d('viewer')).code, 'forbidden');
   assert.equal((await d('out')).code, 'forbidden');
   assert.equal((await d('admin', 'merge')).code, 'kind_not_supported');
-  assert.equal(e.person('p1').nickname, null);
+  assert.equal(e.person('p1').source_note, null);
   assert.equal(e.person('p1').version, 1);
 });
 
@@ -289,7 +289,7 @@ test('langsung: validasi tetap berlaku dan perubahan langsung membuat usulan lai
   const bad = await applyDirect(e.db, { treeId: 't1', actorId: 'admin', kind: 'person_edit', targetPersonId: 'p1', after: { birth_visibility: 'full' }, now: T0 });
   assert.equal(bad.code, 'unknown_field');
   const { id } = await propose(e);
-  await applyDirect(e.db, { treeId: 't1', actorId: 'admin', kind: 'person_edit', targetPersonId: 'p1', after: { nickname: 'D' }, now: T0 });
+  await applyDirect(e.db, { treeId: 't1', actorId: 'admin', kind: 'person_edit', targetPersonId: 'p1', after: { source_note: 'D' }, now: T0 });
   assert.equal(e.prop(id).status, 'stale');
   assert.equal(e.audits('proposal.stale'), 1);
 });
