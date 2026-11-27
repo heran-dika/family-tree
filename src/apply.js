@@ -578,14 +578,20 @@ export async function approveAndApply(db, { treeId, proposalId, deciderId, now =
   return { ok: true, status: 'approved', ...idOut(p), warnings: p.warnings };
 }
 
-// Jalur langsung (Admin/Owner) tanpa usulan. Contributor diarahkan ke usulan, Viewer ditolak.
+// SEMENTARA (pilot tertutup): alur usulan dan UI "Jadikan Admin" belum ada, jadi Contributor boleh menulis langsung
+// untuk tambah dan ubah. Hapus (action 'delete') dan arsip tetap tidak boleh. Tercatat di audit lewat actor_id.
+// Melanggar PRD Bagian 8 (relasi orang tua-anak wajib disetujui Owner/Admin lain): HAPUS blok ini sebelum rilis umum.
+const CONTRIB_DIRECT = ['person_create', 'person_edit', 'partnership', 'parent_child'];
+
+// Jalur langsung (Admin/Owner) tanpa usulan. Contributor: lihat CONTRIB_DIRECT di atas, selebihnya diarahkan ke usulan. Viewer ditolak.
 export async function applyDirect(db, { treeId, actorId, kind, targetPersonId = null, after, now = new Date() }) {
   const m = await getMembership(db, treeId, actorId);
   if (!m) return fail('forbidden');
   const bootstrap = isBootstrap(await countManagers(db, treeId).then((c) => ({ owners: c.owner, admins: c.admin })));
-  const r = route({ role: m.role, kind, bootstrap });
+  let r = route({ role: m.role, kind, bootstrap });
   if (r === 'forbidden') return fail('forbidden');
   if (!APPLY_KINDS.includes(kind)) return fail('kind_not_supported');
+  if (r !== 'direct' && m.role === 'contributor' && CONTRIB_DIRECT.includes(kind) && after?.action !== 'delete') r = 'direct';
   if (r !== 'direct') return fail('needs_proposal');
   const t = forTree(db, treeId);
   const p = await prepare(t, { kind, after, targetPersonId, role: m.role, now });

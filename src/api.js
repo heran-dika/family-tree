@@ -17,6 +17,7 @@
 //   POST /api/trees/:id/members/:accountId          { action: role|remove, role? } (Owner/Admin)
 //   GET  /api/join/mine                              permintaan menunggu milik akun ini
 // Usulan (Contributor, atau relasi saat sudah ada Admin kedua) BELUM tersambung: perubahan seperti itu dijawab 409 needs_proposal.
+// PENGECUALIAN SEMENTARA: Contributor boleh tulis langsung untuk tambah/ubah (person_create, person_edit, partnership, parent_child), bukan hapus/arsip. Lihat CONTRIB_DIRECT di apply.js.
 
 import { getSession } from './auth.js';
 import { applyDirect } from './apply.js';
