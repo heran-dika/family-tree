@@ -683,7 +683,7 @@ const tid=S.tid,r=await http('/api/trees/'+tid+'/join-requests');let cs=null;
 if(S.role==='owner'){const c=await http('/api/trees/'+tid+'/access-code');if(c.status===200)cs={active:c.j.active};}
 if(tid!==S.tid)return;S.reqs=r.status===200?r.j.requests:[];S.codeSt=cs;}
 const mg=()=>loadMgmt().then(()=>hdr()).catch(()=>{});
-const gUrl=t=>location.origin+'/app#login='+t;
+const gUrl=t=>location.origin+'/#login='+t;
 async function guestMake(){if(S.busy)return;const n=(S.gn||'').trim();if(!n){toast('Isi nama orangnya dulu');return;}S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/guests',{name:n,role:S.gr||'viewer'});
 if(!r.j.ok&&!r.j.code){toast('Server belum punya fitur ini. Upload backend terbaru (zip login-link).');return;}
@@ -746,7 +746,7 @@ else toast(ERR[r.j.code]||errMsg({code:r.j.code}));
 S.jrej=null;S.jrt='';
 await loadMgmt();hmLoad(S.tid);hdr();}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
-const linkOf=()=>S.code?location.origin+'/app#join='+S.code:'';
+const linkOf=()=>S.code?location.origin+'/#join='+S.code:'';
 async function makeCode(){
 if(S.busy)return;S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/access-code',{});
