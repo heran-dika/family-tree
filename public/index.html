@@ -170,6 +170,16 @@ details.mr.na>summary{cursor:default}details.mr.na>summary::after{content:''}
 #mn>*,.acb>*,details.mr{flex:none}
 .rd .m{font-weight:400}
 .ss.ok{padding:2px 0}
+
+.tcw{background:var(--card);border:1.5px solid var(--bd);border-radius:18px;overflow:hidden}
+.tcw.cur{border:2px solid var(--acc)}
+.tcw>.tc{border:0;border-radius:0}
+.hm{border-top:1px solid var(--bd);padding:0 16px 12px}
+.hm:not(.o){padding-bottom:0}
+.hmh{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:52px}
+.hmb{border:0;background:none;color:var(--ink);font:700 calc(14px*var(--ts,1)) Inter,system-ui,sans-serif;min-height:44px;padding:0;display:flex;align-items:center;gap:6px;cursor:pointer}
+.pl.pq{width:34px;padding:0;border-radius:50%}
+details.mr>summary>div{flex:1;min-width:0}
 </style>
 </head>
 <body>
@@ -219,10 +229,19 @@ FITUR PROTOTYPE2 YANG KIRA-KIRA BELUM ADA DI BACKEND (UI tetap tampil, tapi data
   9. "Isi identitas" placeholder: belum diketahui apakah person_edit boleh mengosongkan is_placeholder.
  10. "Orang tua lainnya" saat tambah anak: dikirim sebagai 2 edge parent_child (aksi yang sudah ada), tanpa membuat partnership.
 Akibat: setelah reload() data poin 1-3 hilang dari layar karena adopt() hanya membaca yang dikembalikan server.
+TAMBAHAN index_3 (UI dulu, backend menyusul):
+ 11. Home > blok Anggota per pohon: klien memanggil GET /api/trees/:id/members untuk SEMUA peran. Kalau server membalas selain 200 (mis. 403 untuk Viewer/Contributor), blok disembunyikan, tidak error.
+     Yang dibutuhkan server: (a) izinkan semua anggota membaca /members; (b) untuk non-Owner/Admin kirim HANYA anggota ber-peran owner/admin, dan hanya nama + peran (tanpa email, guest, sessionExpiresAt). UI juga menyaring dan menyembunyikan itu, tapi itu bukan penegakan privasi (V2);
+     (c) kirim memberCount di /api/trees untuk Owner/Admin supaya header "Anggota (N)" tampil tanpa request per pohon. Non-manager melihat "Pengelola (N)" dari hasil /members. Sesuai A1 (hanya nama Owner/Admin yang terlihat), jadi tidak butuh keputusan PRD baru.
+ 12. Tombol "Undang orang" di Home hanya untuk Owner (mengikuti kode lama). PRD A6 bilang Owner/Admin: selisih belum diputuskan.
+ 13. Privasi tanggal lahir (V1/P1-5, versi 2 pilihan): centang "Tampilkan tanggal lahir lengkap" di form Ubah data. Disimpan hanya di memori sesi (S.bvs), TIDAK dikirim ke server dan hilang saat reload.
+     Server butuh: field per orang birth_visibility ('full'|'year', bawaan 'year'), hanya bisa diubah oleh akun yang tertaut ke profil itu (U8) dan sudah dewasa; filter baca (V2) memotong ke tahun saja bila 'year' atau umur <18 (Owner/Admin/wali tetap melihat penuh untuk anak).
+     UI mengunci centang bila bukan profil sendiri (S.me) atau umur <18 (hitungan kasar: tahun sekarang - tahun lahir). Tampilan tanggal di sheet profil belum dibatasi di klien, harus dibatasi server.
+
 ================================================================================================= */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const S={role:'viewer',focus:null,sel:null,ui:null,form:null,z:1,x:0,y:0,tog:new Set(),up:0,me:null,hist:[],rej:null,rejText:'',hint:null,fs:false,path:false,anchor:null,n:0,props:[],log:[],tab:'beranda',tr:null,ts:1,lang:'id',tid:null,tname:'',boot:false,jn:null,jc:'',jm:'',pend:[],reqs:[],codeSt:null,code:null,acc:undefined,trees:null,busy:false,nt:'',ns:null,cg:'',authErr:null,people:{},par:[],sp:[]};
+const S={role:'viewer',focus:null,sel:null,ui:null,form:null,z:1,x:0,y:0,tog:new Set(),up:0,me:null,hist:[],rej:null,rejText:'',hint:null,fs:false,path:false,anchor:null,n:0,props:[],log:[],tab:'beranda',tr:null,ts:1,lang:'id',tid:null,tname:'',boot:false,jn:null,jc:'',jm:'',pend:[],reqs:[],codeSt:null,code:null,acc:undefined,trees:null,busy:false,nt:'',ns:null,cg:'',authErr:null,hmem:{},hx:{},hb:{},bvs:{},people:{},par:[],sp:[]};
 const GH={};
 const P=id=>S.people[id]||GH[id];
 const uniq=a=>[...new Set(a)];
@@ -557,7 +576,7 @@ ${f.k==='parent'||f.k==='child'?`<label>Jenis hubungan</label><div class="cr">${
 ${c2?`<label for="p2s">Orang tua lainnya</label><select id="p2s">${popts(f.p2||'',f.of,new Set([f.of]))}</select>`:''}
 ${open?`
 <label>Jenis kelamin (opsional)</label><div class="cr">${[['L','<b class="sx m" aria-hidden="true">♂</b> Laki-laki'],['P','<b class="sx f" aria-hidden="true">♀</b> Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(f.g||'')===v?' on':''}" data-act="gd" data-id="${v}" aria-pressed="${(f.g||'')===v}"${gDis(f,v)?' disabled':''}>${l}</button>`).join('')}</div><div class="m">Hanya dipakai untuk urutan pasangan di pohon.</div>
-<label>Tahun lahir (opsional)</label><div class="rw" style="gap:8px"><button class="df${S.wo==='f:b'?' on':''}" data-act="dopen" data-id="f:b" aria-expanded="${S.wo==='f:b'}" aria-label="Tahun lahir">${dshort(f.year,f.bmo,f.bda)}<span aria-hidden="true">▾</span></button><button class="pl${f.ap?' on':''}" data-act="apb" aria-pressed="${!!f.ap}"${f.year?'':' disabled'}>${f.ap?'<span aria-hidden="true">✓ </span>':''}Perkiraan</button><button class="pl${f.dd?' on':''}" data-act="dd" aria-pressed="${!!f.dd}">${f.dd?'<span aria-hidden="true">✓ </span>':''}Wafat</button></div>${S.wo==='f:b'?wheels(f,'b','f'):''}
+<label>Tahun lahir (opsional)</label><div class="rw" style="gap:8px"><button class="df${S.wo==='f:b'?' on':''}" data-act="dopen" data-id="f:b" aria-expanded="${S.wo==='f:b'}" aria-label="Tahun lahir">${dshort(f.year,f.bmo,f.bda)}<span aria-hidden="true">▾</span></button><button class="pl${f.ap?' on':''}" data-act="apb" aria-pressed="${!!f.ap}"${f.year?'':' disabled'}>${f.ap?'<span aria-hidden="true">✓ </span>':''}Perkiraan</button><button class="pl${f.dd?' on':''}" data-act="dd" aria-pressed="${!!f.dd}">${f.dd?'<span aria-hidden="true">✓ </span>':''}Wafat</button></div>${S.wo==='f:b'?wheels(f,'b','f'):''}${bvRow(f)}
 ${f.dd?`<label>Tahun wafat</label><div class="rw" style="gap:8px"><button class="df${S.wo==='f:w'?' on':''}" data-act="dopen" data-id="f:w" aria-expanded="${S.wo==='f:w'}" aria-label="Tahun wafat">${dshort(f.dyear,f.wmo,f.wda)}<span aria-hidden="true">▾</span></button><button class="pl${f.wa?' on':''}" data-act="apw" aria-pressed="${!!f.wa}"${f.dyear?'':' disabled'}>${f.wa?'<span aria-hidden="true">✓ </span>':''}Perkiraan</button></div>${S.wo==='f:w'?wheels(f,'w','f'):''}${f.dyear?'':'<div class="m">Meninggal, tahun belum diketahui.</div>'}`:''}
 ${e?`<label>Status</label><div class="cr"><button class="ch${f.c?'':' on'}" data-act="st" data-id="0">Belum diverifikasi</button><button class="ch${f.c?' on':''}" data-act="st" data-id="1">Sudah dikonfirmasi</button></div>`:''}
 <label for="fs">Catatan sumber (opsional, maks 500 karakter)</label><textarea id="fs" maxlength="500">${esc(f.src||'')}</textarea>
@@ -576,7 +595,7 @@ const plist2=()=>(S.props.length?pgrp('Perubahan pohon','tree')+pgrp('Permintaan
 function shPend(){return `<div class="rw"><div class="t">Menunggu persetujuan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+plist2();}
 function shHome(){const a=S.acc;if(!a)return'';const join=S.hs==='join';return `<div class="rw"><div class="t">${join?'Gabung dengan tautan atau kode':'Buat pohon baru'}</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div>`+(join?`<div class="c"><input id="jc" value="${esc(S.jc||'')}" placeholder="Tempel tautan atau kode dari pengelola" autocomplete="off"><button class="b o2" data-act="jlook">Lanjut</button></div>
 `:`<div class="c"><label for="nt">Nama pohon</label><input id="nt" value="${esc(S.nt||'')}" placeholder="mis. Keluarga Ahmad" autocomplete="off"><label for="ns">Nama Anda (profil pertama)</label><input id="ns" value="${esc(S.ns!=null?S.ns:(a.displayName||''))}" autocomplete="off"><label>Jenis kelamin Anda (opsional)</label><div class="cr">${[['L','Laki-laki'],['P','Perempuan'],['','Tidak diisi']].map(([v,l])=>`<button class="ch${(S.cg||'')===v?' on':''}" data-act="cg" data-id="${v}" aria-pressed="${(S.cg||'')===v}">${l}</button>`).join('')}</div><button class="b" data-act="mktree">Buat pohon</button><div class="m">Satu pohon per akun. Anda otomatis jadi Owner.</div></div>`);}
-function sheet(){const sh=$('#sh');if(S.ui!==S.lu){S.wo='';S.lu=S.ui;}if(!S.ui){sh.className='';sh.innerHTML='';return;}sh.className='o';sh.innerHTML=S.ui==='person'?shPerson():S.ui==='form'?shForm():S.ui==='trace'?shTrace():S.ui==='del'?shDel():S.ui==='search'?shSearch():S.ui==='ph'?shPh():S.ui==='sp'?shSp():S.ui==='home'?shHome():shPend();if(S.ui==='form')sh.querySelectorAll('.wh').forEach(e=>{e.scrollTop=(+e.dataset.i)*WI;wfx(e);});}
+function sheet(){const sh=$('#sh');if(S.ui!==S.lu){S.wo='';S.lu=S.ui;}if(!S.ui){sh.className='';sh.innerHTML='';return;}sh.className='o';sh.innerHTML=S.ui==='person'?shPerson():S.ui==='form'?shForm():S.ui==='trace'?shTrace():S.ui==='del'?shDel():S.ui==='search'?shSearch():S.ui==='ph'?shPh():S.ui==='sp'?shSp():S.ui==='home'?shHome():S.ui==='glink'?shGlink():shPend();if(S.ui==='form')sh.querySelectorAll('.wh').forEach(e=>{e.scrollTop=(+e.dataset.i)*WI;wfx(e);});}
 const SSL={menikah:'Menikah',cerai:'Cerai',tidak:'Status belum diketahui'},spLbl=x=>SSL[x.t||'menikah']+(x.y?' · nikah '+fdate(x.y,x.yd,false):'')+(x.ya?' · cerai '+fdate(x.ya,x.yad,false):'');
 function syncSp(){const f=S.sf;if(!f)return;const a=$('#sy'),b=$('#sa');if(a)f.y=a.value.trim();if(b)f.ya=b.value.trim();}
 function shSp(){const f=S.sf,r=f.rec;return `<div class="rw"><div class="t">Hubungan pasangan</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div><div class="m"><b>${esc(P(r.a).n)}</b> dan <b>${esc(P(r.b).n)}</b></div><label>Status hubungan</label><div class="cr">${[['menikah','Menikah'],['cerai','Cerai'],['tidak','Tidak diketahui']].map(([v,l])=>`<button class="ch${f.t===v?' on':''}" data-act="sst" data-id="${v}" aria-pressed="${f.t===v}">${l}</button>`).join('')}</div>${dfield('sf','n',f,'Tahun nikah (opsional)')}${f.t==='cerai'?dfield('sf','c',f,'Tahun cerai (opsional)'):''}${f.warn?`<div class="warn"><b>Periksa dulu:</b> Tahun cerai sebelum tahun nikah.<div class="g2"><button class="b" data-act="spok">Tetap simpan</button><button class="b o2" data-act="spnw">Perbaiki</button></div></div>`:''}<div class="m">${S.role==='contributor'?'Masuk daftar persetujuan Owner atau Admin lain.':'Langsung tersimpan.'}</div><div class="g2"><button class="b" data-act="spsave">${S.role==='contributor'?'Ajukan':'Simpan'}</button><button class="b o2" data-act="back">Batal</button></div>`;}
@@ -593,7 +612,11 @@ const u=spUpd(r,ch);if(!u){toast('Tidak ada perubahan');return;}
 S.sf=null;await run(async()=>(await change('partnership',u)).warnings,'Tersimpan');}
 const prop=(t,ok,no,at,kind)=>S.props.push({id:++S.n,t,ok,no,at,kind:kind||'tree'});
 function sync(){const f=S.form;if(!f)return;const a=$('#fn');if(a)f.name=a.value;const k2=$('#fk');if(k2)f.nick=k2.value;const s2=$('#fs');if(s2)f.src=s2.value;}
-function editForm(id){const p=P(id);S.form={k:'edit',of:id,name:p.ph?'':p.n,year:p.y||'',bmo:(p.bd||'').slice(5,7),bda:(p.bd||'').slice(8,10),ap:!!p.ap,ywb:!!(p.y&&+p.y%10),dd:!!(p.w||p.dd),dyear:p.w||'',wmo:(p.wd||'').slice(5,7),wda:(p.wd||'').slice(8,10),wa:!!p.wa,yww:!!(p.w&&+p.w%10),par:parInit(id),c:!!p.c,g:p.g||'',nick:p.nk||'',src:p.sn||''};S.ui='form';sheet();}
+function bvRow(f){if(f.k!=='edit'||!f.bmo||!f.year)return'';
+const own=!!S.me&&f.of===S.me,minor=CUR-(+f.year)<18,lock=!own||minor,on=!lock&&!!f.bv,seen=on?dshort(f.year,f.bmo,f.bda):f.year,
+why=minor?'Di bawah 18 tahun: orang lain hanya melihat tahun lahir.':!own?'Hanya orangnya sendiri yang bisa mengubah ini.':'';
+return `<div class="rw" style="gap:8px;justify-content:flex-start"><button class="pl${on?' on':''}" data-act="bvt" aria-pressed="${on}"${lock?' disabled':''}>${on?'<span aria-hidden="true">✓ </span>':''}Tampilkan tanggal lahir lengkap</button><button class="pl pq" data-act="bvq" aria-expanded="${!!f.bvq}" aria-label="Penjelasan tampilan tanggal lahir">?</button></div><div class="m">Orang lain melihat: <b>${esc(seen)}</b>${why?' · '+why:''}</div>${f.bvq?'<div class="c m"><div><b>Dicentang:</b> semua anggota pohon melihat tanggal lahir lengkap.</div><div><b>Tidak dicentang (bawaan):</b> hanya tahun lahir yang terlihat.</div><div>Hanya orangnya sendiri yang bisa mengubah. Untuk anak di bawah 18 tahun, orang lain selalu hanya melihat tahun; tanggal lengkap hanya untuk Owner/Admin dan walinya.</div></div>':''}`;}
+function editForm(id){const p=P(id);S.form={k:'edit',of:id,name:p.ph?'':p.n,year:p.y||'',bmo:(p.bd||'').slice(5,7),bda:(p.bd||'').slice(8,10),ap:!!p.ap,ywb:!!(p.y&&+p.y%10),dd:!!(p.w||p.dd),dyear:p.w||'',wmo:(p.wd||'').slice(5,7),wda:(p.wd||'').slice(8,10),wa:!!p.wa,yww:!!(p.w&&+p.w%10),par:parInit(id),c:!!p.c,g:p.g||'',nick:p.nk||'',src:p.sn||'',bv:!!S.bvs[id]};S.ui='form';sheet();}
 function done(){S.ui=null;S.sel=null;S.form=null;}
 // ===== Sambungan ke backend (menggantikan simulasi di prototipe) =====
 const EN_T={biologis:'biological',adopsi:'adoptive',tiri:'step',wali:'guardian'};
@@ -606,7 +629,7 @@ const errMsg=e=>e&&e.code?(ERR[e.code]||'Gagal menyimpan ('+e.code+')'):'Tidak b
 async function http(path,opt={}){
 const r=await fetch(path,{credentials:'same-origin',...opt,headers:opt.body?{'content-type':'application/json'}:undefined});
 let j={};try{j=await r.json();}catch(x){}
-if(r.status===401&&S.acc){S.acc=null;S.tid=null;S.trees=null;S.people={};S.par=[];S.sp=[];tab('beranda');hdr();toast('Sesi habis, masuk lagi');}
+if(r.status===401&&S.acc){S.acc=null;S.tid=null;S.trees=null;S.hmem={};S.hx={};S.people={};S.par=[];S.sp=[];tab('beranda');hdr();toast('Sesi habis, masuk lagi');}
 return{status:r.status,j};}
 const post=(path,body)=>http(path,{method:'POST',body:JSON.stringify(body)});
 async function change(kind,after,target){const r=await post('/api/trees/'+S.tid+'/changes',{kind,targetPersonId:target||null,after});if(!r.j.ok)throw{code:r.j.code||'error'};return r.j;}
@@ -617,7 +640,7 @@ j.parentChild.forEach(e=>S.par.push({id:e.id,c:e.child,p:e.parent,t:ID_T[e.type]
 j.partnerships.forEach(s=>{const o={id:s.id,a:s.a,b:s.b,t:s.status==='divorced'||s.status==='separated'?'cerai':'menikah'};if(s.startYear!=null)o.y=String(s.startYear);if(o.t==='cerai'&&s.endYear!=null)o.ya=String(s.endYear);S.sp.push(o);});
 S.role=j.role;S.boot=j.bootstrap;S.me=j.me;S.tid=j.tree.id;S.tname=j.tree.name;}
 async function reload(){const r=await http('/api/trees/'+S.tid);if(r.status!==200)throw{code:r.j.code||'error'};adopt(r.j);}
-async function refreshTrees(){const r=await http('/api/trees');S.trees=r.status===200?r.j.trees:[];S.pend=r.status===200?(r.j.pending||[]):[];S.rejd=r.status===200?(r.j.rejected||[]):[];}
+async function refreshTrees(){const r=await http('/api/trees');S.trees=r.status===200?r.j.trees:[];S.pend=r.status===200?(r.j.pending||[]):[];hmSync();S.rejd=r.status===200?(r.j.rejected||[]):[];}
 const rdIds=()=>{try{return JSON.parse(localStorage.getItem('ft.rd')||'[]');}catch(x){return[];}};
 async function openTree(id){
 try{const r=await http('/api/trees/'+id);if(r.status!==200){toast(ERR[r.j.code]||'Gagal membuka pohon');return;}
@@ -655,31 +678,31 @@ else{const c=r.j.code;if(['already_member','already_pending','invalid_code'].inc
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 // pengelola: permintaan bergabung menunggu, dan status tautan (hanya Owner)
 async function loadMgmt(){
-if(!S.tid||!['owner','admin'].includes(S.role)){S.reqs=[];S.mem=[];S.codeSt=null;return;}
-const tid=S.tid,r=await http('/api/trees/'+tid+'/join-requests'),mr=await http('/api/trees/'+tid+'/members');let cs=null;
+if(!S.tid||!['owner','admin'].includes(S.role)){S.reqs=[];S.codeSt=null;return;}
+const tid=S.tid,r=await http('/api/trees/'+tid+'/join-requests');let cs=null;
 if(S.role==='owner'){const c=await http('/api/trees/'+tid+'/access-code');if(c.status===200)cs={active:c.j.active};}
-if(tid!==S.tid)return;S.reqs=r.status===200?r.j.requests:[];S.mem=mr.status===200?mr.j.members:[];S.codeSt=cs;}
+if(tid!==S.tid)return;S.reqs=r.status===200?r.j.requests:[];S.codeSt=cs;}
 const mg=()=>loadMgmt().then(()=>hdr()).catch(()=>{});
 const gUrl=t=>location.origin+'/app#login='+t;
 async function guestMake(){if(S.busy)return;const n=(S.gn||'').trim();if(!n){toast('Isi nama orangnya dulu');return;}S.busy=true;
 try{const r=await post('/api/trees/'+S.tid+'/guests',{name:n,role:S.gr||'viewer'});
 if(!r.j.ok&&!r.j.code){toast('Server belum punya fitur ini. Upload backend terbaru (zip login-link).');return;}
-if(r.j.ok){S.glink={url:gUrl(r.j.token),name:n};S.gn='';await loadMgmt();hdr();toast('Link dibuat. Kirim sekarang, hanya tampil sekali.');}else toast(r.j.code==='too_many_guests'?'Batas anggota tanpa email tercapai':(ERR[r.j.code]||errMsg({code:r.j.code})));}
+if(r.j.ok){S.glink={url:gUrl(r.j.token),name:n};S.gn='';await loadMgmt();hmLoad(S.tid);hdr();toast('Link dibuat. Kirim sekarang, hanya tampil sekali.');}else toast(r.j.code==='too_many_guests'?'Batas anggota tanpa email tercapai':(ERR[r.j.code]||errMsg({code:r.j.code})));}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
-async function guestRe(aid){const m=(S.mem||[]).find(x=>x.accountId===aid);if(!m||S.busy)return;
+async function guestRe(aid,tid){const m=((S.hmem[tid]||{}).list||[]).find(x=>x.accountId===aid);if(!m||S.busy)return;
 if(!confirm('Buat ulang link untuk '+m.name+'? HP lamanya langsung keluar dan link lama mati.'))return;S.busy=true;
-try{const r=await post('/api/trees/'+S.tid+'/guests/'+aid,{});
-if(r.j.ok){S.glink={url:gUrl(r.j.token),name:m.name};hdr();toast('Link baru dibuat. Kirim sekarang.');}else toast(ERR[r.j.code]||errMsg({code:r.j.code}));}
+try{const r=await post('/api/trees/'+tid+'/guests/'+aid,{});
+if(r.j.ok){S.glink={url:gUrl(r.j.token),name:m.name};S.ui='glink';sheet();hmLoad(tid);toast('Link baru dibuat. Kirim sekarang.');}else toast(ERR[r.j.code]||errMsg({code:r.j.code}));}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 async function shareG(){const l=S.glink&&S.glink.url;if(!l)return;const t='Halo '+S.glink.name+', buka link ini untuk melihat pohon keluarga: '+l;
 if(navigator.share){try{await navigator.share({text:t});}catch(x){}}else{try{await navigator.clipboard.writeText(l);toast('Link disalin');}catch(x){toast('Salin manual dari kolom link');}}}
-async function memAct(spec){const[aid,act,role]=spec.split('|');if(S.busy)return;
-const m=(S.mem||[]).find(x=>x.accountId===aid);if(!m)return;
+async function memAct(spec,tid){const[aid,act,role]=spec.split('|');if(S.busy)return;
+const m=((S.hmem[tid]||{}).list||[]).find(x=>x.accountId===aid);if(!m)return;
 if(act==='remove'&&!confirm('Keluarkan '+m.name+' dari pohon ini? Profil dan relasinya tetap ada.'))return;
 S.busy=true;
-try{const r=await post('/api/trees/'+S.tid+'/members/'+aid,act==='remove'?{action:'remove'}:{action:'role',role});
+try{const r=await post('/api/trees/'+tid+'/members/'+aid,act==='remove'?{action:'remove'}:{action:'role',role});
 toast(r.j.ok?(act==='remove'?'Anggota dikeluarkan':'Peran diubah'):(ERR[r.j.code]||errMsg({code:r.j.code})));
-await loadMgmt();hdr();}catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
+await hmLoad(tid);}catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 // TODO(backend): /members belum tentu mengirim m.sessionExpiresAt (ISO atau epoch ms). Tanpa field ini baris status sesi tidak tampil.
 // Perlu dipastikan: sesi absolut atau diperpanjang tiap dipakai, dan banyak perangkat per akun (field mana yang dikirim).
 const DAY=864e5;
@@ -688,16 +711,29 @@ if(rem<=0){const d=Math.floor(-rem/DAY);return{k:'ex',t:d<1?'Sesi habis hari ini
 const d=Math.ceil(rem/DAY),lim=m.guest?5:1;
 if(d<=lim)return{k:'wn',t:d<=1?'Sesi berakhir dalam 1 hari':'Sesi berakhir dalam '+d+' hari'};
 return{k:'ok',t:'Sisa sesi '+d+' hari'};}
-function memSec(){if(!S.tid||!['owner','admin'].includes(S.role))return null;const SW=['viewer','contributor'],ms=S.mem||[];let bad=0;
-const rows=ms.map(m=>{const ed=!m.self&&(SW.includes(m.role)||(S.role==='owner'&&m.role==='admin')),si=sesInfo(m),pr=!!si&&si.k!=='ok';if(pr)bad++;
-const head='<div><b>'+esc(m.name)+'</b> <span class="bd2">'+(ROLE[m.role]||esc(m.role))+'</span><div class="m">'+(m.guest?'Tanpa email (login lewat link)':esc(m.email))+(m.self?' · Anda':'')+'</div>'+(si?'<div class="ss '+si.k+'">'+(si.k==='ok'?'':'<span aria-hidden="true">'+(si.k==='wn'?'⚠':'✕')+'</span>')+si.t+'</div>':'')+'</div>';
-if(!ed)return'<details class="mr na"><summary>'+head+'</summary></details>';
-const re=m.guest&&S.role==='owner';
+// Home: blok Anggota per pohon. Owner/Admin: email, status sesi, aksi. Lainnya: nama dan peran saja.
+const hmMgr=t=>['owner','admin'].includes(t.role);
+function hmOpen(t){return t.id in S.hx?S.hx[t.id]:(S.tid?t.id===S.tid:((S.trees||[])[0]||{}).id===t.id);}
+async function hmLoad(tid){if(S.hb[tid])return;S.hb[tid]=1;
+try{const r=await http('/api/trees/'+tid+'/members');S.hmem[tid]=r.status===200&&Array.isArray(r.j.members)?{st:'ok',list:r.j.members}:{st:'na'};}
+catch(x){if(!S.hmem[tid])S.hmem[tid]={st:'err'};}
+finally{delete S.hb[tid];}hdr();}
+function hmSync(){(S.trees||[]).forEach(t=>{if(hmOpen(t))hmLoad(t.id);});}
+function hmBlock(t){const d=S.hmem[t.id];if(d&&d.st==='na')return'';
+const mgr=hmMgr(t),open=hmOpen(t),SW=['viewer','contributor'],all=d&&d.list?d.list:null,ms=all?(mgr?all:all.filter(m=>['owner','admin'].includes(m.role))):null,n=ms?ms.length:(mgr&&t.memberCount!=null?t.memberCount:null);let bad=0;
+const rows=ms?ms.map(m=>{const si=mgr?sesInfo(m):null,pr=!!si&&si.k!=='ok';if(pr)bad++;
+const head='<div><b>'+esc(m.name)+'</b>'+(m.self?' <span class="m">(Anda)</span>':'')+(mgr?'<div class="m">'+(m.guest?'Tanpa email (login lewat link)':esc(m.email||''))+'</div>':'')+(si?'<div class="ss '+si.k+'">'+(si.k==='ok'?'':'<span aria-hidden="true">'+(si.k==='wn'?'⚠':'✕')+'</span>')+si.t+'</div>':'')+'</div><span class="bd2">'+(ROLE[m.role]||esc(m.role))+'</span>';
+if(!(mgr&&!m.self&&(SW.includes(m.role)||(t.role==='owner'&&m.role==='admin'))))return'<details class="mr na"><summary>'+head+'</summary></details>';
+const re=m.guest&&t.role==='owner',dt=' data-t="'+t.id+'" data-id="'+m.accountId;
 return'<details class="mr"><summary>'+head+'</summary>'+(re&&pr?'<div class="m" style="margin-top:6px">Tanpa email, dia tidak bisa masuk sendiri setelah sesi habis. Buat link baru sebelum waktunya.</div>':'')+'<div class="g2" style="margin-top:8px">'
-+(re?'<button class="b'+(pr?'':' o2')+'" data-act="mre" data-id="'+m.accountId+'">Buat ulang link</button>':'')
-+(SW.includes(m.role)?SW.filter(r=>r!==m.role).map(r=>'<button class="b o2" data-act="mrole" data-id="'+m.accountId+'|role|'+r+'">Jadikan '+ROLE[r]+'</button>').join(''):'')
-+'<button class="b o2 dg" data-act="mdel" data-id="'+m.accountId+'|remove">Keluarkan</button></div></details>';}).join('');
-return{title:'Anggota ('+ms.length+')',chip:bad?'<span class="chip">'+bad+' sesi perlu perhatian</span>':'',body:rows||'<div class="m">Belum ada anggota.</div>'};}
++(re?'<button class="b'+(pr?'':' o2')+'" data-act="mre"'+dt+'">Buat ulang link</button>':'')
++(SW.includes(m.role)?SW.filter(r=>r!==m.role).map(r=>'<button class="b o2" data-act="mrole"'+dt+'|role|'+r+'">Jadikan '+ROLE[r]+'</button>').join(''):'')
++'<button class="b o2 dg" data-act="mdel"'+dt+'|remove">Keluarkan</button></div></details>';}).join(''):'';
+const chev='<span aria-hidden="true" style="display:inline-block;transition:transform .15s'+(open?';transform:rotate(90deg)':'')+'">›</span>';
+const hd='<div class="hmh"><button class="hmb" data-act="hmt" data-id="'+t.id+'" aria-expanded="'+open+'">'+(mgr?'Anggota':'Pengelola')+(n!=null?' ('+n+')':'')+' '+chev+'</button>'+(!open&&bad?'<span class="chip">'+bad+' sesi perlu perhatian</span>':'')+(open&&t.role==='owner'?'<button class="pill" data-act="hinv" data-id="'+t.id+'">Undang orang</button>':'')+'</div>';
+const body=!open?'':ms?(rows||'<div class="m">Belum ada anggota.</div>')+(ms.length?'<div class="m" style="margin-top:6px">'+(mgr?'Ketuk baris untuk ganti peran, buat ulang link, atau keluarkan.':'Hanya nama dan peran Owner dan Admin. Email tidak ditampilkan.')+'</div>':''):'<div class="m">'+(d&&d.st==='err'?'Gagal memuat anggota.':'Memuat…')+'</div>';
+return'<div class="hm'+(open?' o':'')+'">'+hd+body+'</div>';}
+function shGlink(){const g=S.glink||{url:'',name:''};return `<div class="rw"><div class="t">Link untuk ${esc(g.name)}</div><button class="x" data-act="close" aria-label="Tutup">✕</button></div><div class="warn"><span>Hanya tampil sekarang. HP lamanya sudah keluar.</span><input id="gl" readonly value="${esc(g.url)}"><button class="b" data-act="gshare">Kirim / salin</button></div>`;}
 async function decideReq(spec,reason){
 const[rid,action,role]=spec.split('|');if(S.busy)return;S.busy=true;
 try{const u='/api/trees/'+S.tid+'/join-requests/'+rid;
@@ -708,7 +744,7 @@ if(!r.j.ok&&reason){const r2=await post(u,{action,role:null});if(r2.j.ok){r=r2;d
 if(r.j.ok)toast(action==='approve'?'Disetujui sebagai '+(role==='contributor'?'Contributor':'Viewer')+'. Minta orangnya membuka aplikasi lagi.':drop?'Permintaan ditolak. Alasan belum bisa dikirim: server belum mendukung.':'Permintaan ditolak');
 else toast(ERR[r.j.code]||errMsg({code:r.j.code}));
 S.jrej=null;S.jrt='';
-await loadMgmt();hdr();}
+await loadMgmt();hmLoad(S.tid);hdr();}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
 const linkOf=()=>S.code?location.origin+'/app#join='+S.code:'';
 async function makeCode(){
@@ -735,7 +771,7 @@ try{const r=await post('/api/trees',{name,selfName:sn,selfGender:S.cg==='L'?'mal
 if(!r.j.ok){toast(ERR[r.j.code]||'Gagal membuat pohon ('+(r.j.code||r.status)+')');return;}
 S.nt='';S.dto=undefined;done();sheet();await refreshTrees();S.busy=false;await openTree(r.j.tree.id);}
 catch(x){toast('Tidak bisa terhubung ke server');}finally{S.busy=false;}}
-async function logout(){try{await post('/api/auth/logout',{});}catch(x){}S.acc=null;S.trees=null;S.tid=null;S.people={};S.par=[];S.sp=[];done();sheet();tab('beranda');hdr();}
+async function logout(){try{await post('/api/auth/logout',{});}catch(x){}S.acc=null;S.trees=null;S.tid=null;S.hmem={};S.hx={};S.people={};S.par=[];S.sp=[];done();sheet();tab('beranda');hdr();}
 async function exportJson(){
 if(!S.tid)return;
 try{const r=await fetch('/api/trees/'+S.tid+'/export',{credentials:'same-origin'});
@@ -790,15 +826,16 @@ if(wy!==ow){if(w){a.death_date=wy;a.death_precision=dtp(wy,false);}else{a.death_
 if(!!f.c!==!!p.c)a.confirmation=f.c?'confirmed':'unverified';
 // "Isi identitas": mengganti nama placeholder lewat person_edit; server melepas penanda placeholder sendiri.
 const sn=(f.src||'').trim();if(sn!==(p.sn||''))a.source_note=sn||null;
+const bvCh=(!!f.bv!==!!S.bvs[id]);if(bvCh)S.bvs[id]=!!f.bv;
 const ops=[],dels=[],TYK={biologis:'biological',adopsi:'adoptive',wali:'guardian'};
 Object.entries(f.cpe||{}).forEach(([ri,c])=>{const r=S.sp[+ri];if(!r||!r.id)return;const u=spUpd(r,{t:c.t,...rout(c,c.t==='cerai')});if(u)ops.push(['partnership',u]);});
 Object.entries(f.par||{}).forEach(([t,d])=>{[['cA','sA','father'],['cI','sI','mother']].forEach(([c,sl,role])=>{if(d[c]===d[sl])return;
 if(d[sl])ops.push(['parent_child',{action:'create',child_id:id,parent_id:d[sl],relation_type:TYK[t]||'biological',parent_role:role}]);
 if(d[c]){const e=S.par.find(l=>l.c===id&&l.p===d[c]&&l.t===t);if(e&&e.id)dels.push({action:'delete',edge_id:e.id});}});});
-if(!Object.keys(a).length&&!ops.length&&!dels.length){toast('Tidak ada perubahan');return;}
+if(!Object.keys(a).length&&!ops.length&&!dels.length){toast(bvCh?'Pengaturan tanggal lahir belum tersambung ke server (hanya berlaku di sesi ini).':'Tidak ada perubahan');return;}
 // urutan: ubah data, lalu buat relasi baru, terakhir hapus yang lama (bila gagal di tengah, tidak ada yang hilang)
 await run(async()=>{const w=[];if(Object.keys(a).length)w.push(...((await change('person_edit',a,id)).warnings||[]));
-for(const[k,u]of ops)w.push(...((await change(k,u)).warnings||[]));for(const u of dels)await change('parent_child',u);return w;},'Perubahan tersimpan');}
+for(const[k,u]of ops)w.push(...((await change(k,u)).warnings||[]));for(const u of dels)await change('parent_child',u);return w;},'Perubahan tersimpan'+(bvCh?'. Pengaturan tanggal lahir belum tersambung ke server (hanya berlaku di sesi ini).':''));}
 async function commit(id,isNew){
 const f=S.form;if(!f)return;const X=f.of,k=f.k,ty=EN_T[f.ty]||'biological';
 const prole=f.role||roleOfG(f.g);
@@ -851,8 +888,7 @@ if(a===undefined)home='<div class="c">Memuat…</div>';
 else if(!a)home=hd('Family Tree')+(lsGet(JK)?'<div class="warn">Anda diundang bergabung ke sebuah pohon keluarga. Masuk dulu untuk melanjutkan.</div>':'<div class="m">Masuk untuk membuka atau membuat pohon keluarga.</div>')+(S.authErr?`<div class="warn">${esc(AE[S.authErr]||'Login gagal ('+S.authErr+').')}</div>`:'')+LOGIN;
 else home=`<div class="rw" style="justify-content:flex-start;gap:12px"><div class="av" aria-hidden="true">${esc(((a.displayName||a.email)[0]||'?').toUpperCase())}</div><div>${hd('Halo, '+esc(a.displayName||a.email))}<div class="m">Pilih pohon keluarga yang mau dibuka</div></div></div>
 ${S.jn?`<div class="c" style="border:2px solid var(--acc)"><div class="t">Gabung ke “${esc(S.jn.treeName)}”?</div><div class="m">Pengelola: ${S.jn.managers.map(esc).join(', ')}</div><label for="jm">Pesan singkat untuk pengelola (opsional)</label><input id="jm" maxlength="200" value="${esc(S.jm||'')}" placeholder="mis. Saya sepupu Ahmad dari Bekasi" autocomplete="off"><div class="m">Pengelola menyetujui dulu. Sebelum itu pohonnya belum bisa Anda lihat.</div><div class="g2"><button class="b" data-act="jsend">Ajukan bergabung</button><button class="b o2" data-act="jcancel">Batal</button></div></div>`:''}
-<div${S.jn?' class="dim2" aria-hidden="true"':''}>${(S.trees||[]).map(t=>`<button class="tc" data-act="open" data-id="${t.id}"${t.id===S.tid?' style="border:2px solid var(--acc)"':''}><div class="rw"><b class="t">${esc(t.name)}</b><span class="bd2 on">${ROLE[t.role]||esc(t.role)}</span></div><b style="color:var(--acc)">Buka pohon ›</b></button>`).join('')}
-${(S.rejd||[]).filter(r=>!rdIds().includes(r.id)).map(r=>`<div class="tc" style="border-color:#b42318"><div class="rw"><b class="t">${esc(r.treeName)}</b><span class="bd2">Ditolak</span></div><div class="m">Permintaan bergabung ditolak pengelola.${r.reason?' Alasan: '+esc(r.reason):''}</div><button class="b o2" data-act="rdx" data-id="${r.id}" style="margin-top:8px">Tutup</button></div>`).join('')}
+<div${S.jn?' class="dim2" aria-hidden="true"':''}>${(S.trees||[]).map(t=>`<div class="tcw${t.id===S.tid?' cur':''}"><button class="tc" data-act="open" data-id="${t.id}"><div class="rw"><b class="t">${esc(t.name)}</b><span class="bd2 on">${ROLE[t.role]||esc(t.role)}</span></div><b style="color:var(--acc)">Buka pohon ›</b></button>${hmBlock(t)}</div>`).join('')}
 ${(S.pend||[]).map(p=>`<div class="tc" style="border-style:dashed"><div class="rw"><b class="t">${esc(p.treeName)}</b><span class="bd2">Menunggu</span></div><div class="m">Permintaan sudah terkirim. Mengajukan lagi tidak mempercepat; hubungi pengelola supaya segera disetujui. Isi pohon belum bisa dilihat.</div><a class="b o2" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:8px" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=${encodeURIComponent('Halo, saya sudah mengajukan bergabung ke pohon "'+p.treeName+'" di Family Tree. Mohon disetujui ya.')}">Ingatkan pengelola lewat WhatsApp</a></div>`).join('')}
 ${!(S.trees||[]).length&&!(S.pend||[]).length&&!S.jn?'<div class="c">Belum ada pohon. Buat yang pertama di bawah, atau gabung dengan tautan dari pengelola.</div>':''}
 </div><div class="g2" style="margin-top:auto"><button class="b" data-act="hnew">Buat pohon baru</button><button class="b o2" data-act="hjoin">Gabung undangan</button></div>`;
@@ -862,11 +898,10 @@ const jr=reqs.length?`<div class="h">Permintaan bergabung (${reqs.length})</div>
 $('#v-setuju').innerHTML=hd('Approval')+'<div class="m">Alur persetujuan perubahan belum tersambung ke server di versi ini. Selama Anda satu-satunya pengelola, perubahan langsung tersimpan.</div>'+jr+plist2();
 const ts=Math.round(S.ts*100),act=S.codeSt&&S.codeSt.active;
 const acc=(k,ti,body,chip)=>`<details class="ac" name="mn" data-k="${k}"${S.mo===k?' open':''}><summary><span>${ti}</span>${chip||''}</summary><div class="acb">${body}</div></details>`;
-const GUESTH=`<div class="c"><div class="m">Untuk keluarga yang tidak punya akun Google. Link hanya bisa dipakai satu kali, di satu HP.</div><label for="gn">Nama orangnya</label><input id="gn" value="${esc(S.gn||'')}" maxlength="100" autocomplete="off"><div class="cr">${[['viewer','Viewer (hanya lihat)'],['contributor','Contributor (mengajukan)']].map(([v,l])=>`<button class="ch${(S.gr||'viewer')===v?' on':''}" data-act="gr" data-id="${v}" aria-pressed="${(S.gr||'viewer')===v}">${l}</button>`).join('')}</div><button class="b" data-act="gmake">Buat link</button>${S.glink?`<div class="warn"><b>Link untuk ${esc(S.glink.name)}</b> (hanya tampil sekarang)<input id="gl" readonly value="${esc(S.glink.url)}"><button class="b" data-act="gshare">Kirim / salin</button></div>`:''}</div>`,CODEH=`<div class="c"><div class="m">${act?'Tautan aktif. Siapa pun yang memegangnya bisa mengajukan bergabung, tetapi tetap Anda yang menyetujui dan memilih perannya.':'Belum ada tautan aktif.'}</div>${S.code?`<input id="lk" readonly value="${esc(linkOf())}"><div class="g2"><button class="b" data-act="copylink">Salin tautan</button><button class="b o2" data-act="sharelink">Bagikan</button></div><div class="m">Tautan hanya ditampilkan sekarang. Kalau hilang, buat tautan baru (yang lama otomatis mati).</div>`:''}<button class="b o2" data-act="mkcode">${act?'Buat tautan baru (yang lama mati)':'Buat tautan'}</button>${act?'<button class="b o2" data-act="rvcode">Cabut tautan</button>':''}</div>`,UIH=`<div class="c"><div class="rw"><label for="tsr">Ukuran teks</label><b id="tsv">${ts}%</b></div><input id="tsr" type="range" min="90" max="190" step="5" value="${ts}"><label>Bahasa</label><div class="cr">${[['id','Indonesia'],['en','English']].map(([v,l])=>`<button class="ch${S.lang===v?' on':''}" data-act="lang" data-id="${v}" aria-pressed="${S.lang===v}">${l}</button>`).join('')}</div></div>`,iv=S.iv||'google',ms=memSec();
+const GUESTH=`<div class="c"><div class="m">Untuk keluarga yang tidak punya akun Google. Link hanya bisa dipakai satu kali, di satu HP.</div><label for="gn">Nama orangnya</label><input id="gn" value="${esc(S.gn||'')}" maxlength="100" autocomplete="off"><div class="cr">${[['viewer','Viewer (hanya lihat)'],['contributor','Contributor (mengajukan)']].map(([v,l])=>`<button class="ch${(S.gr||'viewer')===v?' on':''}" data-act="gr" data-id="${v}" aria-pressed="${(S.gr||'viewer')===v}">${l}</button>`).join('')}</div><button class="b" data-act="gmake">Buat link</button>${S.glink?`<div class="warn"><b>Link untuk ${esc(S.glink.name)}</b> (hanya tampil sekarang)<input id="gl" readonly value="${esc(S.glink.url)}"><button class="b" data-act="gshare">Kirim / salin</button></div>`:''}</div>`,CODEH=`<div class="c"><div class="m">${act?'Tautan aktif. Siapa pun yang memegangnya bisa mengajukan bergabung, tetapi tetap Anda yang menyetujui dan memilih perannya.':'Belum ada tautan aktif.'}</div>${S.code?`<input id="lk" readonly value="${esc(linkOf())}"><div class="g2"><button class="b" data-act="copylink">Salin tautan</button><button class="b o2" data-act="sharelink">Bagikan</button></div><div class="m">Tautan hanya ditampilkan sekarang. Kalau hilang, buat tautan baru (yang lama otomatis mati).</div>`:''}<button class="b o2" data-act="mkcode">${act?'Buat tautan baru (yang lama mati)':'Buat tautan'}</button>${act?'<button class="b o2" data-act="rvcode">Cabut tautan</button>':''}</div>`,UIH=`<div class="c"><div class="rw"><label for="tsr">Ukuran teks</label><b id="tsv">${ts}%</b></div><input id="tsr" type="range" min="90" max="190" step="5" value="${ts}"><label>Bahasa</label><div class="cr">${[['id','Indonesia'],['en','English']].map(([v,l])=>`<button class="ch${S.lang===v?' on':''}" data-act="lang" data-id="${v}" aria-pressed="${S.lang===v}">${l}</button>`).join('')}</div></div>`,iv=S.iv||'google';
 const INVH=`<div class="cr"><button class="ch${iv==='google'?' on':''}" data-act="ivt" data-id="google" aria-pressed="${iv==='google'}">Punya akun Google</button><button class="ch${iv==='email'?' on':''}" data-act="ivt" data-id="email" aria-pressed="${iv==='email'}">Tanpa email</button></div>`+(iv==='google'?CODEH:GUESTH);
 const TREEH=`<div class="m">${esc(S.tname||'')} · ${ROLE[S.role]||''}</div><button class="b o2" data-act="export">Ekspor JSON</button><div class="m">Bukan backup penuh: tanggal lahir yang tersembunyi tidak ikut.</div>`;
 $('#mn').innerHTML=hd('Menu')+`<div class="c"><div class="rw"><div><b>${a?esc(a.email):'Belum masuk'}</b>${S.tid?`<div class="m">${ROLE[S.role]||''} · ${esc(S.tname||'')}</div>`:''}</div>${a?'<button class="ch" data-act="logout">Keluar</button>':''}</div></div>`
-+(ms?acc('mem',ms.title,ms.body,ms.chip):'')
 +(S.tid&&S.role==='owner'?acc('inv','Undang orang',INVH):'')
 +(S.tid&&['owner','admin'].includes(S.role)?acc('tree','Pohon dan ekspor',TREEH):'')
 +acc('ui','Tampilan',UIH);
@@ -920,7 +955,7 @@ const el=e.target.closest('[data-act]');if(!el)return;
 const a=el.dataset.act,id=el.dataset.id,f=S.form;
 switch(a){
 case'sel':if(id[0]==='?'){if(S.role==='viewer')break;const m=id.slice(1),ks=chOf(m).filter(c=>{const b=S.par.filter(l=>l.c===c&&l.t==='biologis').map(l=>l.p);return b.length===1&&b[0]===m;});if(!ks.length)break;S.sel=ks[0];S.form={k:'parent',of:ks[0],kids:ks,name:'',year:'',ap:false,ty:'biologis',g:autoG(ks[0],'biologis'),ss:'menikah',dyear:''};S.ui='form';tree();sheet();break;}S.sel=id;S.ui='person';S.form=null;tree();sheet();break;
-case'close':done();tree();sheet();break;
+case'close':if(S.ui==='glink')S.glink=null;done();tree();sheet();break;
 case'focus':S.focus=S.sel;if(S.path&&(S.focus===S.anchor||!pathInfo(S.focus,S.anchor))){S.path=false;toast('Jalur dimatikan: fokus tidak punya jalur keturunan ke acuan');}done();ctr(tree());sheet();break;
 case'edit':editForm(S.sel);break;
 case'kid':S.sel=id;editForm(id);break;
@@ -991,11 +1026,21 @@ case'jrole':{const p=id.split('|');S.jrole=S.jrole||{};S.jrole[p[0]]=p[1];hdr();
 case'jrq':S.jrt=id;hdr();break;
 case'jrcancel':S.jrej=null;hdr();break;
 case'jrsend':{const x=(S.jrt||'').trim();if(!x){toast('Alasan wajib diisi');break;}decideReq(id+'|reject',x);break;}
-case'mrole':case'mdel':memAct(id);break;
+case'mrole':case'mdel':memAct(id,el.dataset.t);break;
 case'rdx':{try{localStorage.setItem('ft.rd',JSON.stringify([...rdIds(),id]));}catch(x){}hdr();break;}
 case'gmake':guestMake();break;
 case'gr':S.gr=id;hdr();break;
-case'mre':guestRe(id);break;
+case'mre':guestRe(id,el.dataset.t);break;
+case'hmt':{const t=(S.trees||[]).find(x=>String(x.id)===id);if(!t)break;S.hx[t.id]=!hmOpen(t);if(S.hx[t.id])hmLoad(t.id);hdr();break;}
+case'hinv':(async()=>{if(String(S.tid)!==id)await openTree(id);if(String(S.tid)!==id)return;S.iv='google';S.mo='inv';tab('menu');})();break;
+case'bvt':sync();f.bv=!f.bv;rerender();break;
+case'bvq':f.bvq=!f.bvq;rerender();break;
+case'gshare':shareG();break;
+case'mkcode':makeCode();break;
+case'rvcode':revokeCode();break;
+case'copylink':copyLink();break;
+case'sharelink':shareLink();break;
+
 case'gshare':shareG();break;
 case'mkcode':makeCode();break;
 case'rvcode':revokeCode();break;
@@ -1020,7 +1065,7 @@ initPanels();fsIcon();
 
 // P0-8: bahasa dan ukuran teks. String baru cukup ditambah ke D.en (kunci = teks Indonesia).
 const D={id:{'Home':'Beranda','Approval':'Persetujuan','Legend':'Keterangan','Legend garis':'Keterangan garis','Legend kotak':'Keterangan kotak'},
-en:{'Pohon':'Tree','Beranda':'Home','Persetujuan':'Approval','Keterangan':'Legend','Keterangan garis':'Line legend','Keterangan kotak':'Box legend','Menu':'Menu','Jalur ke acuan':'Path to reference',
+en:{'Anggota':'Members','Pengelola':'Managers','Undang orang':'Invite people','Tampilkan tanggal lahir lengkap':'Show full birth date','Pohon':'Tree','Beranda':'Home','Persetujuan':'Approval','Keterangan':'Legend','Keterangan garis':'Line legend','Keterangan kotak':'Box legend','Menu':'Menu','Jalur ke acuan':'Path to reference',
 'Ketuk orang untuk mengedit. Geser dan cubit untuk menjelajah. Data hanya simulasi.':'Tap a person to edit. Drag and pinch to explore. Simulated data only.',
 'Perbesar':'Zoom in','Perkecil':'Zoom out','Layar penuh':'Full screen','Keluar layar penuh':'Exit full screen','Tutup':'Close','Lipat anak':'Collapse children','Tambah leluhur':'Add ancestors','Kurangi leluhur':'Show fewer ancestors','Setujui':'Approve','Tolak':'Reject',
 'Jadikan fokus':'Set as focus','Jadikan acuan':'Set as reference','Ubah data':'Edit details','Ajukan perubahan':'Propose change','Telusuri hubungan':'Trace relationship','Tambah relasi':'Add relation','+ Orang tua':'+ Parent','+ Pasangan':'+ Spouse','+ Anak':'+ Child','Hapus orang ini':'Delete this person',
@@ -1034,7 +1079,7 @@ en:{'Pohon':'Tree','Beranda':'Home','Persetujuan':'Approval','Keterangan':'Legen
 'Anggota dan akses':'Members and access','Audit log':'Audit log','Backup dan ekspor':'Backup and export','Ekspor JSON':'Export JSON','Akun':'Account','MFA: aktif':'MFA: on','Pengaturan tampilan':'Display settings','Ukuran teks':'Text size','Bahasa':'Language',
 'Hubungan belum ditemukan atau belum tercatat. Itu bukan berarti mereka tidak berkerabat.':'Relationship not found or not recorded yet. That does not mean they are unrelated.','Ajukan penambahan hubungan':'Propose adding a relationship','Telusuri':'Trace',
 'Belum ada aktivitas. Coba edit pohon.':'No activity yet. Try editing the tree.','Nama wajib diisi':'Name is required','Alasan wajib diisi':'Reason is required','Perubahan tersimpan':'Changes saved','Tersimpan':'Saved','↗ kartu asli':'↗ original card','Dukung Aplikasi Family Tree':'Support the Family Tree App','Cari':'Search','Buat pohon baru atau gabung':'Create a new tree or join one','Tahun nikah (opsional)':'Marriage year (optional)','Isi tahun dulu':'Fill in the year first','Isi bulan dulu':'Fill in the month first','Geser bulatan ke kiri untuk menyetujui, ke kanan untuk menolak':'Slide the circle left to approve, right to reject','Geser ke kiri untuk menyetujui, ke kanan untuk menolak':'Slide left to approve, right to reject','Setujui atau tolak':'Approve or reject','Ubah ›':'Edit ›','Hubungan pasangan (ketuk untuk ubah status dan tahun)':'Partner relationship (tap to edit status and years)','Hubungan pasangan':'Partner relationship','Tahun mulai (opsional)':'Start year (optional)','Tahun cerai (opsional)':'Divorce year (optional)','Tahun harus 4 angka':'Year must be 4 digits','Belum diketahui':'Unknown','? Status belum diketahui':'? Status unknown','Wafat':'Deceased','Tahun lahir (opsional)':'Birth year (optional)','Tahun wafat':'Death year','Orang tua kandung':'Biological parent','Orang tua angkat':'Adoptive parent','Orang tua lainnya':'Other parent','Bukan keduanya':'Neither of them','Meninggal, tahun belum diketahui.':'Deceased, year unknown.','Pilihan yang mati: sejenis kelamin dengan orang tua kandung pertama.':'Disabled: same gender as the first biological parent.','Tambah detail':'Add details','Tanggal lahir':'Date of birth','Tanggal meninggal':'Date of death','Sudah meninggal':'Deceased','Lengkap':'Full date','Tahun saja':'Year only','Tidak diketahui':'Unknown','Catatan sumber (opsional, maks 500 karakter)':'Source note (optional, max 500 characters)','Foto':'Photo','Ganti foto':'Change photo','Tampil dengan kata sekitar, bukan sebagai fakta pasti.':'Shown as "around", never as an exact fact.','Tahun harus berupa angka':'Year must be a number','Tampilkan lebih banyak':'Show more','Tampilkan jalur di pohon':'Show path in tree','Tidak ada jalur lain dalam batas 3 langkah tambahan.':'No other paths within 3 extra steps.','Langkah paling sedikit bukan berarti hubungan darah terdekat. ┄ berarti angkat, tiri, atau wali.':'Fewest steps does not mean the closest blood relation. ┄ means adopted, step, or guardian.','Orang tua belum diketahui':'Parent unknown','Isi identitas':'Fill in identity','Ayah':'Father','Ibu':'Mother','Profil kosong dibuat dulu. Identitasnya bisa diisi kapan saja tanpa memutus relasi.':'An empty profile is created first. Identity can be filled in any time without breaking the relationship.','Masuk daftar persetujuan Owner atau Admin lain.':'Goes to another Owner or Admin for approval.','Langsung tersimpan.':'Saved immediately.','Tetap isi di sini':'Fill in here anyway','Cari orang':'Search people','Nama atau nama panggilan':'Name or nickname','Ketik nama atau nama panggilan.':'Type a name or nickname.','Tidak ada hasil.':'No results.','Tidak ada hasil. Cari orang tua atau pasangannya, lalu tambahkan dari profilnya.':'No results. Search for their parent or spouse, then add from that profile.','Nama panggilan (opsional, hanya untuk pencarian)':'Nickname (optional, search only)'},
-rx:{en:[[/^(\d+) menunggu$/,'$1 pending'],[/^Halo, (.+)$/,'Hello, $1'],[/^Menunggu persetujuan \((\d+)\)$/,'Awaiting approval ($1)'],[/^Riwayat \((\d+)\)$/,'History ($1)'],[/^(\d+) perubahan menunggu persetujuan$/,'$1 changes awaiting approval'],[/^▸ (\d+) anak$/,'▸ $1 children'],[/^Anak ke-(\d+) dari (\d+)/,'Child $1 of $2'],[/^(\d+) hasil, 40 teratas ditampilkan\. Persempit pencarian\.$/,'$1 results, showing top 40. Narrow your search.'],[/^Jalur utama · (\d+) langkah$/,'Main path · $1 steps'],[/^Jalur lain \((\d+\+?)\)$/,'Other paths ($1)'],[/^Jalur (\d+) dari (\d+)$/,'Path $1 of $2'],[/^(\d+) langkah$/,'$1 steps'],[/^(.+) · sekarang$/,'$1 · current'],[/^(.+) · mantan$/,'$1 · former'],[/^(.+) · status belum diketahui$/,'$1 · status unknown'],[/^(.+) · jenis kelamin kosong$/,'$1 · gender not set'],[/^(.+) · pasangan lain$/,'$1 · other partner'],[/^(.+) · bukan pasangan tercatat$/,'$1 · not a recorded partner']],id:[]}};
+rx:{en:[[/^Anggota \((\d+)\)$/,'Members ($1)'],[/^Pengelola \((\d+)\)$/,'Managers ($1)'],[/^(\d+) menunggu$/,'$1 pending'],[/^Halo, (.+)$/,'Hello, $1'],[/^Menunggu persetujuan \((\d+)\)$/,'Awaiting approval ($1)'],[/^Riwayat \((\d+)\)$/,'History ($1)'],[/^(\d+) perubahan menunggu persetujuan$/,'$1 changes awaiting approval'],[/^▸ (\d+) anak$/,'▸ $1 children'],[/^Anak ke-(\d+) dari (\d+)/,'Child $1 of $2'],[/^(\d+) hasil, 40 teratas ditampilkan\. Persempit pencarian\.$/,'$1 results, showing top 40. Narrow your search.'],[/^Jalur utama · (\d+) langkah$/,'Main path · $1 steps'],[/^Jalur lain \((\d+\+?)\)$/,'Other paths ($1)'],[/^Jalur (\d+) dari (\d+)$/,'Path $1 of $2'],[/^(\d+) langkah$/,'$1 steps'],[/^(.+) · sekarang$/,'$1 · current'],[/^(.+) · mantan$/,'$1 · former'],[/^(.+) · status belum diketahui$/,'$1 · status unknown'],[/^(.+) · jenis kelamin kosong$/,'$1 · gender not set'],[/^(.+) · pasangan lain$/,'$1 · other partner'],[/^(.+) · bukan pasangan tercatat$/,'$1 · not a recorded partner']],id:[]}};
 const orig=new WeakMap();
 const trs=(b,l)=>{const t=b.trim();if(!t)return b;let r=D[l][t];if(r==null)for(const[a,c]of D.rx[l]||[])if(a.test(t)){r=t.replace(a,c);break;}return r==null?b:b.replace(t,r);};
 function xl(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){const b=orig.has(n)?orig.get(n):n.nodeValue;const r=trs(b,S.lang);if(r!==b){orig.set(n,b);n.nodeValue=r;}else if(orig.has(n)&&n.nodeValue!==b)n.nodeValue=b;}
